@@ -853,16 +853,16 @@ export default function OrderForm({ technicianId, onSaved }: OrderFormProps) {
 
       {/* Equipos - Mostrar cada equipo en una sección separada */}
       {devices.map((device, deviceIndex) => (
-        <div key={device.id} className="border border-slate-200 rounded-lg p-6 bg-slate-50">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-slate-900">
+        <div key={device.id} className="border border-slate-200 rounded-lg p-4 sm:p-6 bg-slate-50">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">
               Equipo {deviceIndex + 1}
             </h3>
             {devices.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeDevice(device.id)}
-                className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50"
+                className="w-full sm:w-auto px-3 py-1 text-xs sm:text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 whitespace-nowrap"
               >
                 🗑️ Eliminar Equipo
               </button>
@@ -870,7 +870,7 @@ export default function OrderForm({ technicianId, onSaved }: OrderFormProps) {
           </div>
 
           {/* Información del Dispositivo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="relative">
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Dispositivo (Marca y Modelo) *
@@ -1017,8 +1017,8 @@ export default function OrderForm({ technicianId, onSaved }: OrderFormProps) {
 
           {/* Modal para seleccionar categoría de dispositivo */}
           {showDeviceCategoryModal?.deviceId === device.id && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+              <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-2 sm:mx-4">
                 <h3 className="text-lg font-bold text-slate-900 mb-4">
                   Agregar Nuevo Dispositivo
                 </h3>

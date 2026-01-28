@@ -336,7 +336,7 @@ export default function ProductosStock({ user }: ProductosStockProps) {
           <h3 className="text-lg font-semibold mb-4">
             {productoEditando ? 'Editar Producto' : 'Nuevo Producto'}
           </h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Código de Barras <span className="text-slate-400 text-xs">(Opcional)</span>
@@ -418,10 +418,10 @@ export default function ProductosStock({ user }: ProductosStockProps) {
               />
             </div>
           </div>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-col sm:flex-row gap-3">
             <button
               onClick={guardarProducto}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
               disabled={loading || !formData.nombre}
             >
               Guardar
@@ -431,7 +431,7 @@ export default function ProductosStock({ user }: ProductosStockProps) {
                 setMostrarFormulario(false);
                 setProductoEditando(null);
               }}
-              className="px-6 py-2 bg-slate-400 text-white rounded-lg font-medium hover:bg-slate-500"
+              className="w-full sm:w-auto px-6 py-2 bg-slate-400 text-white rounded-lg font-medium hover:bg-slate-500"
             >
               Cancelar
             </button>
@@ -449,12 +449,12 @@ export default function ProductosStock({ user }: ProductosStockProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="text-left p-3 text-slate-700">Código</th>
-                <th className="text-left p-3 text-slate-700">Nombre</th>
-                <th className="text-left p-3 text-slate-700">Categoría</th>
-                <th className="text-right p-3 text-slate-700">Precio</th>
-                <th className="text-right p-3 text-slate-700">Stock</th>
-                <th className="text-center p-3 text-slate-700">Acciones</th>
+                <th className="text-left px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium text-slate-700">Código</th>
+                <th className="text-left px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium text-slate-700">Nombre</th>
+                <th className="text-left px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium text-slate-700 hidden md:table-cell">Categoría</th>
+                <th className="text-right px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium text-slate-700">Precio</th>
+                <th className="text-right px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium text-slate-700">Stock</th>
+                <th className="text-center px-2 sm:px-3 py-3 text-xs sm:text-sm font-medium text-slate-700">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -465,13 +465,13 @@ export default function ProductosStock({ user }: ProductosStockProps) {
                     producto.stock_actual <= producto.stock_minimo ? 'bg-red-50' : ''
                   }`}
                 >
-                  <td className="p-3 text-slate-600">{producto.codigo_barras || '-'}</td>
-                  <td className="p-3 font-medium text-slate-800">{producto.nombre}</td>
-                  <td className="p-3 text-slate-600">{producto.categoria || '-'}</td>
-                  <td className="p-3 text-right font-medium text-slate-800">
+                  <td className="px-2 sm:px-3 py-3 text-sm text-slate-600 truncate max-w-[100px] sm:max-w-none">{producto.codigo_barras || '-'}</td>
+                  <td className="px-2 sm:px-3 py-3 text-sm font-medium text-slate-800 truncate max-w-[150px] sm:max-w-none">{producto.nombre}</td>
+                  <td className="px-2 sm:px-3 py-3 text-sm text-slate-600 hidden md:table-cell truncate max-w-[120px]">{producto.categoria || '-'}</td>
+                  <td className="px-2 sm:px-3 py-3 text-sm text-right font-medium text-slate-800 whitespace-nowrap">
                     {formatCurrency(producto.precio_venta)}
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="px-2 sm:px-3 py-3 text-sm text-right">
                     <span
                       className={`font-medium ${
                         producto.stock_actual <= producto.stock_minimo
@@ -485,8 +485,8 @@ export default function ProductosStock({ user }: ProductosStockProps) {
                       <span className="ml-2 text-xs text-red-600">⚠ Bajo</span>
                     )}
                   </td>
-                  <td className="p-3">
-                    <div className="flex gap-2 justify-center">
+                  <td className="px-2 sm:px-3 py-3">
+                    <div className="flex gap-1 sm:gap-2 justify-center flex-wrap">
                       <button
                         onClick={() => {
                           const cantidad = prompt(
@@ -496,7 +496,7 @@ export default function ProductosStock({ user }: ProductosStockProps) {
                             agregarStock(producto, parseInt(cantidad));
                           }
                         }}
-                        className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                        className="px-2 sm:px-3 py-1 bg-blue-500 text-white rounded text-xs sm:text-sm hover:bg-blue-600 whitespace-nowrap"
                         disabled={loading}
                       >
                         + Stock
@@ -515,7 +515,7 @@ export default function ProductosStock({ user }: ProductosStockProps) {
                           });
                           setMostrarFormulario(true);
                         }}
-                        className="px-3 py-1 bg-slate-500 text-white rounded text-sm hover:bg-slate-600"
+                        className="px-2 sm:px-3 py-1 bg-slate-500 text-white rounded text-xs sm:text-sm hover:bg-slate-600 whitespace-nowrap"
                         disabled={loading}
                       >
                         Editar

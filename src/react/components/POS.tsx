@@ -372,7 +372,7 @@ export default function POS({ user }: POSProps) {
       {/* Búsqueda manual de productos */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-brand-gold-400 mb-3">Buscar Producto</h3>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             placeholder="Buscar por nombre o código..."
@@ -381,12 +381,12 @@ export default function POS({ user }: POSProps) {
               setBusquedaManual(e.target.value);
               buscarProductosManual(e.target.value);
             }}
-            className="flex-1 px-4 py-3 border-2 border-brand-black-border bg-brand-black rounded-lg focus:ring-2 focus:ring-brand focus:border-brand text-lg text-brand-black-text"
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-brand-black-border bg-brand-black rounded-lg focus:ring-2 focus:ring-brand focus:border-brand text-base sm:text-lg text-brand-black-text"
             data-barcode-scanner="enabled"
           />
           <button
             onClick={() => buscarProductosManual(busquedaManual)}
-            className="px-6 py-3 bg-brand text-brand-black rounded-lg font-semibold hover:bg-brand-light disabled:opacity-50 font-bold transition-colors"
+            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-brand text-brand-black rounded-lg font-semibold hover:bg-brand-light disabled:opacity-50 font-bold transition-colors whitespace-nowrap"
             disabled={buscando || !busquedaManual}
           >
             {buscando ? 'Buscando...' : 'Buscar'}
@@ -399,7 +399,7 @@ export default function POS({ user }: POSProps) {
             {productosEncontrados.map((producto) => (
               <div
                 key={producto.id}
-                className="flex items-center justify-between p-3 border-b border-brand-black-border hover:bg-brand-black-lighter cursor-pointer transition-colors"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-brand-black-border hover:bg-brand-black-lighter cursor-pointer transition-colors gap-2 sm:gap-0"
                 onClick={() => {
                   if (producto.stock_actual <= 0) {
                     setError(`Sin stock: ${producto.nombre}`);
@@ -410,9 +410,9 @@ export default function POS({ user }: POSProps) {
                   setProductosEncontrados([]);
                 }}
               >
-                <div className="flex-1">
-                  <p className="font-medium text-brand-black-text">{producto.nombre}</p>
-                  <p className="text-sm text-brand-gold-400">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-brand-black-text truncate">{producto.nombre}</p>
+                  <p className="text-xs sm:text-sm text-brand-gold-400 truncate">
                     {producto.codigo_barras && `Código: ${producto.codigo_barras} • `}
                     Stock: {producto.stock_actual} • {formatCurrency(producto.precio_venta)}
                   </p>
@@ -428,7 +428,7 @@ export default function POS({ user }: POSProps) {
                     setBusquedaManual('');
                     setProductosEncontrados([]);
                   }}
-                  className="px-4 py-2 bg-brand text-brand-black rounded hover:bg-brand-light disabled:opacity-50 font-bold transition-colors"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-brand text-brand-black rounded hover:bg-brand-light disabled:opacity-50 font-bold transition-colors whitespace-nowrap"
                   disabled={producto.stock_actual <= 0}
                 >
                   Agregar
@@ -453,41 +453,43 @@ export default function POS({ user }: POSProps) {
             {carrito.map((item) => (
               <div
                 key={item.producto.id}
-                className="flex items-center justify-between p-3 bg-brand-black rounded border border-brand-gold-600"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-brand-black rounded border border-brand-gold-600 gap-3"
               >
-                <div className="flex-1">
-                  <p className="font-medium text-brand-black-text">{item.producto.nombre}</p>
-                  <p className="text-sm text-brand-gold-400">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-brand-black-text truncate">{item.producto.nombre}</p>
+                  <p className="text-xs sm:text-sm text-brand-gold-400">
                     {formatCurrency(item.precio_unitario)} c/u
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => actualizarCantidad(item.producto.id, item.cantidad - 1)}
-                    className="w-8 h-8 flex items-center justify-center bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                    disabled={loading}
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    value={item.cantidad}
-                    onChange={(e) =>
-                      actualizarCantidad(item.producto.id, parseInt(e.target.value) || 0)
-                    }
-                    className="w-16 text-center border border-brand-black-border bg-brand-black-lighter rounded px-2 py-1 text-brand-black-text"
-                    min="1"
-                    disabled={loading}
-                  />
-                  <button
-                    onClick={() => actualizarCantidad(item.producto.id, item.cantidad + 1)}
-                    className="w-8 h-8 flex items-center justify-center bg-brand text-brand-black rounded hover:bg-brand-light transition-colors font-bold"
-                    disabled={loading}
-                  >
-                    +
-                  </button>
-                  <div className="w-24 text-right">
-                    <p className="font-semibold text-brand">
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => actualizarCantidad(item.producto.id, item.cantidad - 1)}
+                      className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-lg font-bold"
+                      disabled={loading}
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={item.cantidad}
+                      onChange={(e) =>
+                        actualizarCantidad(item.producto.id, parseInt(e.target.value) || 0)
+                      }
+                      className="w-16 sm:w-20 text-center border border-brand-black-border bg-brand-black-lighter rounded px-2 py-1 text-brand-black-text text-base sm:text-lg"
+                      min="1"
+                      disabled={loading}
+                    />
+                    <button
+                      onClick={() => actualizarCantidad(item.producto.id, item.cantidad + 1)}
+                      className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-brand text-brand-black rounded hover:bg-brand-light transition-colors font-bold text-lg"
+                      disabled={loading}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="w-24 sm:w-28 text-right">
+                    <p className="font-semibold text-brand text-base sm:text-lg">
                       {formatCurrency(item.subtotal)}
                     </p>
                   </div>
@@ -506,7 +508,7 @@ export default function POS({ user }: POSProps) {
         </div>
 
         {!mostrarPago ? (
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => {
                 if (carrito.length === 0) {
@@ -515,14 +517,14 @@ export default function POS({ user }: POSProps) {
                 }
                 setMostrarPago(true);
               }}
-              className="flex-1 py-3 bg-brand text-brand-black rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand/50"
+              className="flex-1 py-3 bg-brand text-brand-black rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand/50 text-base sm:text-lg"
               disabled={loading || carrito.length === 0}
             >
               Finalizar Venta
             </button>
             <button
               onClick={cancelarVenta}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors whitespace-nowrap"
               disabled={loading}
             >
               Cancelar
@@ -534,12 +536,12 @@ export default function POS({ user }: POSProps) {
               <label className="block text-sm font-medium text-brand-gold-400 mb-2">
                 Método de Pago
               </label>
-              <div className="flex gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA'] as const).map((metodo) => (
                   <button
                     key={metodo}
                     onClick={() => setMetodoPago(metodo)}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                    className={`py-2 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                       metodoPago === metodo
                         ? 'bg-brand text-brand-black font-bold shadow-lg shadow-brand/50'
                         : 'bg-brand-black border border-brand-gold-600 text-brand-gold-400 hover:bg-brand-black-lighter'
@@ -550,17 +552,17 @@ export default function POS({ user }: POSProps) {
                 ))}
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={finalizarVenta}
-                className="flex-1 py-3 bg-brand text-brand-black rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 transition-colors shadow-lg shadow-brand/50"
+                className="flex-1 py-3 bg-brand text-brand-black rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 transition-colors shadow-lg shadow-brand/50 text-base sm:text-lg"
                 disabled={loading}
               >
                 Confirmar Pago
               </button>
               <button
                 onClick={() => setMostrarPago(false)}
-                className="px-6 py-3 bg-brand-black-lighter border border-brand-gold-600 text-brand-gold-400 rounded-lg font-semibold hover:bg-brand-black transition-colors"
+                className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-brand-black-lighter border border-brand-gold-600 text-brand-gold-400 rounded-lg font-semibold hover:bg-brand-black transition-colors whitespace-nowrap"
                 disabled={loading}
               >
                 Volver

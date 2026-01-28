@@ -207,22 +207,22 @@ export default function BranchPermissionsModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-slate-900">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
+            <h2 className="text-lg sm:text-2xl font-bold text-slate-900">
               Permisos - {branch.name}
             </h2>
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700 text-2xl"
+              className="text-slate-500 hover:text-slate-700 text-xl sm:text-2xl self-end sm:self-auto"
             >
               ×
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
             {/* Columna 1: Nombre */}
             <div>
               <h3 className="text-sm font-semibold text-slate-700 mb-3 text-center">Nombre</h3>

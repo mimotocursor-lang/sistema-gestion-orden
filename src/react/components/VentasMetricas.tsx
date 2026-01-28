@@ -69,18 +69,18 @@ export default function VentasMetricas() {
   return (
     <div className="space-y-6">
       {/* Resumen del día */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Ventas del Día</h3>
-          <p className="text-3xl font-bold text-slate-800">{cantidadVentas}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-2">Ventas del Día</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-800">{cantidadVentas}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Total del Día</h3>
-          <p className="text-3xl font-bold text-green-600">{formatCurrency(totalDia)}</p>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-2">Total del Día</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-green-600">{formatCurrency(totalDia)}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-sm font-medium text-slate-600 mb-2">Productos con Stock Bajo</h3>
-          <p className="text-3xl font-bold text-red-600">{productosStockBajo.length}</p>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-2">Productos con Stock Bajo</h3>
+          <p className="text-2xl sm:text-3xl font-bold text-red-600">{productosStockBajo.length}</p>
         </div>
       </div>
 
@@ -90,10 +90,10 @@ export default function VentasMetricas() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Ventas del día */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Ventas del Día</h3>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-4">Ventas del Día</h3>
           {loading ? (
             <div className="text-center py-8 text-slate-500">Cargando...</div>
           ) : ventasDia.length === 0 ? (
@@ -103,17 +103,17 @@ export default function VentasMetricas() {
               {ventasDia.map((venta) => (
                 <div
                   key={venta.id}
-                  className="flex justify-between items-center p-3 bg-slate-50 rounded border"
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-slate-50 rounded border gap-2"
                 >
-                  <div>
-                    <p className="font-medium text-slate-800">{venta.numero_venta}</p>
-                    <p className="text-sm text-slate-600">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-800 truncate">{venta.numero_venta}</p>
+                    <p className="text-xs sm:text-sm text-slate-600 truncate">
                       {format(new Date(venta.created_at), 'HH:mm', { locale: es })} -{' '}
                       {venta.usuario_nombre}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-slate-800">{formatCurrency(venta.total)}</p>
+                  <div className="text-left sm:text-right flex-shrink-0">
+                    <p className="font-semibold text-slate-800 whitespace-nowrap">{formatCurrency(venta.total)}</p>
                     <p className="text-xs text-slate-600">{venta.metodo_pago}</p>
                   </div>
                 </div>
@@ -123,8 +123,8 @@ export default function VentasMetricas() {
         </div>
 
         {/* Productos más vendidos */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Productos Más Vendidos</h3>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-4">Productos Más Vendidos</h3>
           {loading ? (
             <div className="text-center py-8 text-slate-500">Cargando...</div>
           ) : productosMasVendidos.length === 0 ? (
@@ -134,19 +134,19 @@ export default function VentasMetricas() {
               {productosMasVendidos.map((producto, index) => (
                 <div
                   key={producto.id}
-                  className="flex justify-between items-center p-3 bg-slate-50 rounded border"
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-slate-50 rounded border gap-2"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-slate-400">#{index + 1}</span>
-                    <div>
-                      <p className="font-medium text-slate-800">{producto.nombre}</p>
-                      <p className="text-sm text-slate-600">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <span className="text-xl sm:text-2xl font-bold text-slate-400 flex-shrink-0">#{index + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-800 truncate">{producto.nombre}</p>
+                      <p className="text-xs sm:text-sm text-slate-600">
                         {producto.total_vendido} unidades
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-slate-800">
+                  <div className="text-left sm:text-right flex-shrink-0">
+                    <p className="font-semibold text-slate-800 whitespace-nowrap">
                       {formatCurrency(producto.total_ingresos)}
                     </p>
                   </div>
@@ -158,8 +158,8 @@ export default function VentasMetricas() {
       </div>
 
       {/* Stock bajo */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-4">
           Productos con Stock Bajo
         </h3>
         {loading ? (

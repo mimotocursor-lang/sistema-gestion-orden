@@ -74,20 +74,20 @@ export default function OrderDetail({ orderId, onClose }: OrderDetailProps) {
   const patternArray = order.device_unlock_pattern as number[] | null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-slate-900">Detalle de Orden</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Detalle de Orden</h2>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 text-2xl"
+            className="text-slate-500 hover:text-slate-700 text-2xl sm:text-3xl"
           >
             ×
           </button>
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-slate-600">N° de Orden</label>
               <p className="text-lg font-semibold text-slate-900">{order.order_number}</p>

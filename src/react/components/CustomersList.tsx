@@ -117,7 +117,7 @@ export default function CustomersList({ user }: CustomersListProps) {
         <input
           type="text"
           placeholder="Buscar cliente..."
-          className="border border-slate-300 rounded-md px-3 py-2"
+          className="w-full sm:w-auto min-w-[200px] border border-slate-300 rounded-md px-3 py-2"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -132,14 +132,14 @@ export default function CustomersList({ user }: CustomersListProps) {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase w-8"></th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Nombre</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Teléfono</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">RUT/Documento</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Dirección</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Fecha Registro</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Historial</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase w-8"></th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Nombre</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Email</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Teléfono</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">RUT/Documento</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">Dirección</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Fecha Registro</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Historial</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -151,7 +151,7 @@ export default function CustomersList({ user }: CustomersListProps) {
                 return (
                   <>
                     <tr key={customer.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3">
+                      <td className="px-2 sm:px-4 py-3">
                         <button
                           onClick={() => toggleCustomerExpanded(customer.id)}
                           className="text-slate-600 hover:text-slate-900"
@@ -159,22 +159,24 @@ export default function CustomersList({ user }: CustomersListProps) {
                           {isExpanded ? "▼" : "▶"}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-slate-900">{customer.name}</td>
-                      <td className="px-4 py-3 text-sm text-slate-700">{customer.email}</td>
-                      <td className="px-4 py-3 text-sm text-slate-700">
-                        {country?.flag} {customer.phone_country_code || "+56"} {customer.phone}
+                      <td className="px-2 sm:px-4 py-3 text-sm font-medium text-slate-900 truncate max-w-[150px] sm:max-w-none">{customer.name}</td>
+                      <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden md:table-cell truncate max-w-[200px]">{customer.email}</td>
+                      <td className="px-2 sm:px-4 py-3 text-sm text-slate-700">
+                        <span className="truncate block max-w-[150px] sm:max-w-none">
+                          {country?.flag} {customer.phone_country_code || "+56"} {customer.phone}
+                        </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-700">{customer.rut_document || "-"}</td>
-                      <td className="px-4 py-3 text-sm text-slate-700">{customer.address || "-"}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{formatDate(customer.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md">
+                      <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden lg:table-cell">{customer.rut_document || "-"}</td>
+                      <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden lg:table-cell truncate max-w-[200px]">{customer.address || "-"}</td>
+                      <td className="px-2 sm:px-4 py-3 text-sm text-slate-600 hidden md:table-cell">{formatDate(customer.created_at)}</td>
+                      <td className="px-2 sm:px-4 py-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-xs whitespace-nowrap">
                             {orders.length} {orders.length === 1 ? "orden" : "órdenes"}
                           </span>
                           <button
                             onClick={() => setEditingCustomer(customer)}
-                            className="px-3 py-1 text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark transition-colors"
+                            className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark transition-colors whitespace-nowrap"
                             title="Editar cliente"
                           >
                             ✏️ Editar

@@ -226,15 +226,15 @@ export default function OrderEditModal({ order, onClose, onSaved }: OrderEditMod
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-slate-900">Editar Orden {order.order_number}</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 mx-2 sm:mx-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Editar Orden {order.order_number}</h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700 text-2xl font-bold"
+              className="text-slate-500 hover:text-slate-700 text-xl sm:text-2xl font-bold self-end sm:self-auto"
             >
               ×
             </button>

@@ -123,12 +123,12 @@ export default function UsersList() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Nombre</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Rol</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Sucursal</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Fecha Registro</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Acciones</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Nombre</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Email</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Rol</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">Sucursal</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Fecha Registro</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -136,24 +136,24 @@ export default function UsersList() {
                 const branch = (user as any).sucursal as Branch | null;
                 return (
                   <tr key={user.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">{user.name}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{user.email}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                    <td className="px-2 sm:px-4 py-3 text-sm font-medium text-slate-900 truncate max-w-[150px] sm:max-w-none">{user.name}</td>
+                    <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden md:table-cell truncate max-w-[200px]">{user.email}</td>
+                    <td className="px-2 sm:px-4 py-3 text-sm text-slate-700">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">{branch?.name || "Sin asignar"}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden lg:table-cell truncate max-w-[150px]">{branch?.name || "Sin asignar"}</td>
+                    <td className="px-2 sm:px-4 py-3 text-sm text-slate-600 hidden md:table-cell">
                       {user.created_at ? formatDate(user.created_at) : "-"}
                     </td>
-                    <td className="px-4 py-3 text-sm">
+                    <td className="px-2 sm:px-4 py-3 text-sm">
                       <button
                         onClick={() => {
                           setEditingUser(user);
                           setShowForm(true);
                         }}
-                        className="px-3 py-1 text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark"
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark whitespace-nowrap"
                       >
                         Editar
                       </button>

@@ -415,8 +415,10 @@ export default function Dashboard() {
           />
         )}
         
-        <main className={`flex-1 ${showSidebar ? 'lg:ml-64' : ''} p-4 sm:p-6 lg:p-8`}>
-          {renderContent()}
+        <main className={`flex-1 ${showSidebar ? 'lg:ml-64' : ''} p-3 sm:p-4 md:p-6 lg:p-8`}>
+          <div className="max-w-full overflow-x-hidden">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </div>

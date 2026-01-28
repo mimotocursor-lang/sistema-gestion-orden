@@ -747,9 +747,9 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
 
       {/* Filtros */}
       <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-        <div className="flex flex-wrap items-end gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
           {/* Filtro por número de orden */}
-          <div className="flex-1 min-w-[150px]">
+          <div className="sm:col-span-1">
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Número de Orden
             </label>
@@ -763,7 +763,7 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
           </div>
 
           {/* Filtro por fecha (inicio obligatorio, fin opcional) */}
-          <div className="flex-1 min-w-[150px]">
+          <div className="sm:col-span-1">
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Fecha Desde
             </label>
@@ -776,9 +776,9 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
           </div>
 
           {/* Filtro por fecha hasta (opcional) */}
-          <div className="flex-1 min-w-[150px]">
+          <div className="sm:col-span-1">
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Fecha Hasta (Opcional)
+              Fecha Hasta
             </label>
             <input
               type="date"
@@ -790,7 +790,7 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
 
           {/* Filtro por sucursal (solo admin) */}
           {isAdmin && (
-            <div className="flex-1 min-w-[150px]">
+            <div className="sm:col-span-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Sucursal
               </label>
@@ -810,7 +810,7 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
           )}
 
           {/* Botón para limpiar filtros */}
-          <div className="flex-shrink-0">
+          <div className="sm:col-span-2 lg:col-span-1 xl:col-span-1">
             <button
               onClick={() => {
                 setOrderNumberFilter("");
@@ -819,7 +819,7 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                 setBranchFilter("all");
                 setStatusFilter("all");
               }}
-              className="px-4 py-2 text-sm border border-slate-300 rounded-md text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
+              className="w-full sm:w-auto px-4 py-2 text-sm border border-slate-300 rounded-md text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
             >
               Limpiar Filtros
             </button>
@@ -834,14 +834,14 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">N° Orden</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Cliente</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Dispositivo</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Prioridad</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Estado</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Total</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Fecha</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Acciones</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">N° Orden</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Cliente</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Dispositivo</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">Prioridad</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Estado</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Total</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">Fecha</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
@@ -851,12 +851,12 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                   className="hover:bg-slate-50"
                 >
                   <td 
-                    className="px-4 py-3 text-sm font-medium text-slate-900 cursor-pointer"
+                    className="px-2 sm:px-4 py-3 text-sm font-medium text-slate-900 cursor-pointer"
                     onClick={() => setSelectedOrderId(order.id)}
                   >
                     {order.order_number}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700">
+                  <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden md:table-cell">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -872,20 +872,20 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                     </button>
                   </td>
                   <td 
-                    className="px-4 py-3 text-sm text-slate-700 cursor-pointer"
+                    className="px-2 sm:px-4 py-3 text-sm text-slate-700 cursor-pointer"
                     onClick={() => setSelectedOrderId(order.id)}
                   >
                     <div className="flex items-center gap-2">
-                      <span>{order.device_model}</span>
+                      <span className="truncate max-w-[120px] sm:max-w-none">{order.device_model}</span>
                       {(order as any).devices_data && Array.isArray((order as any).devices_data) && (order as any).devices_data.length > 0 && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full flex-shrink-0">
                           +{(order as any).devices_data.length} más
                         </span>
                       )}
                     </div>
                   </td>
                   <td 
-                    className="px-4 py-3 text-sm cursor-pointer"
+                    className="px-2 sm:px-4 py-3 text-sm cursor-pointer hidden lg:table-cell"
                     onClick={() => setSelectedOrderId(order.id)}
                   >
                     <span className="flex items-center gap-2">
@@ -893,7 +893,7 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                       <span className="text-slate-700">{getPriorityText(order.priority)}</span>
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 sm:px-4 py-3">
                     {editingStatus === order.id ? (
                       <select
                         className={`text-xs font-medium rounded-full border ${getStatusColor(order.status)} px-2 py-1`}
@@ -924,28 +924,29 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                     )}
                   </td>
                   <td 
-                    className="px-4 py-3 text-sm font-medium text-slate-900 cursor-pointer"
+                    className="px-2 sm:px-4 py-3 text-sm font-medium text-slate-900 cursor-pointer hidden md:table-cell"
                     onClick={() => setSelectedOrderId(order.id)}
                   >
                     {formatCLP(order.total_repair_cost, { withLabel: false })}
                   </td>
                   <td 
-                    className="px-4 py-3 text-sm text-slate-600 cursor-pointer"
+                    className="px-2 sm:px-4 py-3 text-sm text-slate-600 cursor-pointer hidden lg:table-cell"
                     onClick={() => setSelectedOrderId(order.id)}
                   >
                     {formatDate(order.created_at)}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 relative">
+                  <td className="px-2 sm:px-4 py-3">
+                    <div className="flex gap-1 sm:gap-2 relative flex-wrap">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewPDF(order);
                         }}
-                        className="px-3 py-1 text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark transition-colors"
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark transition-colors whitespace-nowrap"
                         title="Ver PDF"
                       >
-                        📄 PDF
+                        <span className="hidden sm:inline">📄 PDF</span>
+                        <span className="sm:hidden">📄</span>
                       </button>
                       <div className="relative">
                         <button
@@ -953,11 +954,12 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                             e.stopPropagation();
                             setOpenActionsMenu(openActionsMenu === order.id ? null : order.id);
                           }}
-                          className="px-3 py-1 text-sm bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors flex items-center gap-1"
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors flex items-center gap-1 whitespace-nowrap"
                           title="Más acciones"
                         >
-                          ⚙️ Acciones
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <span className="hidden sm:inline">⚙️ Acciones</span>
+                          <span className="sm:hidden">⚙️</span>
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </button>
@@ -1038,8 +1040,8 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
 
       {/* Diálogo de selección de método de notificación */}
       {showNotificationDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-md w-full mx-2 sm:mx-4">
             <h3 className="text-lg font-bold text-slate-900 mb-4">
               Seleccionar método de notificación
             </h3>

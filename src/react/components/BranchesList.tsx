@@ -229,30 +229,30 @@ export default function BranchesList({ currentUser }: BranchesListProps) {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Nombre</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Razón Social</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Dirección</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Teléfono</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Email</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Acciones</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Nombre</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Razón Social</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">Dirección</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden md:table-cell">Teléfono</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase hidden lg:table-cell">Email</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {branches.map((branch) => (
                 <tr key={branch.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900">{branch.name}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{branch.razon_social || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{branch.address || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{branch.phone || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{branch.email || "-"}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex gap-2">
+                  <td className="px-2 sm:px-4 py-3 text-sm font-medium text-slate-900 truncate max-w-[150px] sm:max-w-none">{branch.name}</td>
+                  <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden md:table-cell truncate max-w-[200px]">{branch.razon_social || "-"}</td>
+                  <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden lg:table-cell truncate max-w-[200px]">{branch.address || "-"}</td>
+                  <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden md:table-cell">{branch.phone || "-"}</td>
+                  <td className="px-2 sm:px-4 py-3 text-sm text-slate-700 hidden lg:table-cell truncate max-w-[200px]">{branch.email || "-"}</td>
+                  <td className="px-2 sm:px-4 py-3 text-sm">
+                    <div className="flex gap-1 sm:gap-2 flex-wrap">
                       <button
                         onClick={() => {
                           setEditingBranch(branch);
                           setShowForm(true);
                         }}
-                        className="px-3 py-1 text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark"
+                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark whitespace-nowrap"
                       >
                         Editar
                       </button>
@@ -262,13 +262,13 @@ export default function BranchesList({ currentUser }: BranchesListProps) {
                             onClick={() => {
                               setPermissionsBranch(branch);
                             }}
-                            className="px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                            className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 whitespace-nowrap"
                           >
                             Permisos
                           </button>
                           <button
                             onClick={() => handleDelete(branch.id, branch.name || branch.razon_social || 'Sucursal')}
-                            className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+                            className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-red-600 text-white rounded-md hover:bg-red-700 whitespace-nowrap"
                           >
                             Eliminar
                           </button>
