@@ -61,7 +61,7 @@ Thumbs.db
 Si aún no has inicializado Git en el proyecto:
 
 ```bash
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 git init
 ```
 
@@ -92,7 +92,7 @@ git commit -m "Initial commit: Sistema de Gestión de Órdenes"
 2. Haz clic en el botón **"+"** en la esquina superior derecha
 3. Selecciona **"New repository"**
 4. Completa:
-   - **Repository name**: `sistema-gestion-ordenes` (o el nombre que prefieras)
+   - **Repository name**: `sistema-gestion-orden` (o el nombre que prefieras)
    - **Description**: "Sistema de gestión de órdenes de reparación de dispositivos"
    - **Visibility**: Elige **Private** (recomendado) o **Public**
    - **NO marques** "Add a README file" (ya tienes uno)
@@ -105,7 +105,7 @@ git commit -m "Initial commit: Sistema de Gestión de Órdenes"
 GitHub te mostrará instrucciones. Usa estas si es la primera vez:
 
 ```bash
-git remote add origin https://github.com/TU-USUARIO/sistema-gestion-ordenes.git
+git remote add origin https://github.com/TU-USUARIO/sistema-gestion-orden.git
 git branch -M main
 git push -u origin main
 ```
@@ -126,7 +126,7 @@ Si te pide autenticación:
 
 1. Si tienes una clave SSH configurada en GitHub:
    ```bash
-   git remote set-url origin git@github.com:TU-USUARIO/sistema-gestion-ordenes.git
+   git remote set-url origin git@github.com:TU-USUARIO/sistema-gestion-orden.git
    git push -u origin main
    ```
 
@@ -161,7 +161,7 @@ git push
 Tu repositorio debería verse así:
 
 ```
-sistema-gestion-ordenes/
+sistema-gestion-orden/
 ├── .gitignore
 ├── astro.config.mjs
 ├── package.json
@@ -203,7 +203,7 @@ sistema-gestion-ordenes/
 ### Error: "remote origin already exists"
 ```bash
 git remote remove origin
-git remote add origin https://github.com/TU-USUARIO/sistema-gestion-ordenes.git
+git remote add origin https://github.com/TU-USUARIO/sistema-gestion-orden.git
 ```
 
 ### Error: "Authentication failed"

@@ -4,15 +4,15 @@
 
 ### 1. Instalar Dependencias
 
-**⚠️ IMPORTANTE**: Debes estar dentro del directorio `sistema-gestion-ordenes` para ejecutar npm install.
+**⚠️ IMPORTANTE**: Debes estar dentro del directorio `sistema-gestion-orden` para ejecutar npm install.
 
 ```powershell
 # En PowerShell (Windows):
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 npm install
 ```
 
-**Si obtienes error "Could not read package.json"**: Significa que no estás en el directorio correcto. Verifica que estás en `sistema-gestion-ordenes` con `dir package.json`
+**Si obtienes error "Could not read package.json"**: Significa que no estás en el directorio correcto. Verifica que estás en `sistema-gestion-orden` con `dir package.json`
 
 ### 2. Configurar Base de Datos
 
@@ -78,7 +78,7 @@ El sistema estará disponible en `http://localhost:4321`
 ## 📁 Estructura del Proyecto
 
 ```
-sistema-gestion-ordenes/
+sistema-gestion-orden/
 ├── src/
 │   ├── components/          # Componentes Astro
 │   ├── layouts/            # Layouts Astro

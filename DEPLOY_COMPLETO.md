@@ -20,7 +20,7 @@ Tu `package.json` debe incluir:
 
 ```json
 {
-  "name": "sistema-gestion-ordenes",
+  "name": "sistema-gestion-orden",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -94,7 +94,7 @@ Si hay errores, corrígelos antes de continuar.
 ### 2.1 Inicializar Git (si no lo has hecho)
 
 ```bash
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 git init
 ```
 
@@ -120,7 +120,7 @@ git commit -m "Initial commit: Sistema de Gestión de Órdenes"
 ### 2.4 Crear Repositorio en GitHub
 
 1. Ve a https://github.com/new
-2. **Repository name**: `sistema-gestion-ordenes`
+2. **Repository name**: `sistema-gestion-orden`
 3. **Visibility**: Private (recomendado) o Public
 4. **NO marques** ninguna opción (README, .gitignore, license)
 5. Haz clic en **"Create repository"**
@@ -129,7 +129,7 @@ git commit -m "Initial commit: Sistema de Gestión de Órdenes"
 
 ```bash
 # Reemplaza TU-USUARIO con tu usuario de GitHub
-git remote add origin https://github.com/TU-USUARIO/sistema-gestion-ordenes.git
+git remote add origin https://github.com/TU-USUARIO/sistema-gestion-orden.git
 git branch -M main
 git push -u origin main
 ```
@@ -152,7 +152,7 @@ Ve a tu repositorio y verifica que:
 1. Ve a https://vercel.com
 2. Inicia sesión con GitHub
 3. Haz clic en **"Add New Project"**
-4. Selecciona tu repositorio `sistema-gestion-ordenes`
+4. Selecciona tu repositorio `sistema-gestion-orden`
 5. Vercel detectará automáticamente que es un proyecto Astro
 
 ### 3.2 Configurar Variables de Entorno
@@ -186,7 +186,7 @@ Vercel debería detectar automáticamente:
 
 1. Haz clic en **"Deploy"**
 2. Espera a que termine el build (2-5 minutos)
-3. Obtendrás una URL como: `https://sistema-gestion-ordenes.vercel.app`
+3. Obtendrás una URL como: `https://sistema-gestion-orden.vercel.app`
 
 ## ✅ Paso 4: Verificar el Deploy
 
@@ -266,14 +266,14 @@ git push
 
 ```bash
 # 1. Preparar
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 npm run build  # Verificar que funciona
 
 # 2. Git
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/TU-USUARIO/sistema-gestion-ordenes.git
+git remote add origin https://github.com/TU-USUARIO/sistema-gestion-orden.git
 git push -u origin main
 
 # 3. Vercel

@@ -14,7 +14,7 @@ Asegúrate de que tu `.gitignore` incluya:
 ### 1.2 Inicializar Git (si no lo has hecho)
 
 ```bash
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 git init
 git add .
 git commit -m "Initial commit: Sistema de Gestión de Órdenes"
@@ -24,12 +24,12 @@ git commit -m "Initial commit: Sistema de Gestión de Órdenes"
 
 1. Ve a [GitHub](https://github.com) y crea un nuevo repositorio
 2. No inicialices con README, .gitignore o licencia (ya los tienes)
-3. Copia la URL del repositorio (ej: `https://github.com/tu-usuario/sistema-gestion-ordenes.git`)
+3. Copia la URL del repositorio (ej: `https://github.com/tu-usuario/sistema-gestion-orden.git`)
 
 ### 1.4 Conectar con GitHub
 
 ```bash
-git remote add origin https://github.com/tu-usuario/sistema-gestion-ordenes.git
+git remote add origin https://github.com/tu-usuario/sistema-gestion-orden.git
 git branch -M main
 git push -u origin main
 ```
@@ -75,7 +75,7 @@ Vercel debería detectar automáticamente:
 
 1. Haz clic en **"Deploy"**
 2. Vercel construirá y desplegará tu aplicación
-3. Una vez completado, obtendrás una URL como: `https://sistema-gestion-ordenes.vercel.app`
+3. Una vez completado, obtendrás una URL como: `https://sistema-gestion-orden.vercel.app`
 
 ## Paso 3: Verificar el Deploy
 

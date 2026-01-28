@@ -23,8 +23,8 @@ Sistema completo de gestión de órdenes de trabajo para servicio técnico espec
 
 1. **Clonar el repositorio:**
 ```bash
-git clone https://github.com/tu-usuario/sistema-gestion-ordenes.git
-cd sistema-gestion-ordenes
+git clone https://github.com/tu-usuario/sistema-gestion-orden.git
+cd sistema-gestion-orden
 ```
 
 2. **Instalar dependencias:**
@@ -69,7 +69,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/tu-usuario/sistema-gestion-ordenes.git
+git remote add origin https://github.com/tu-usuario/sistema-gestion-orden.git
 git push -u origin main
 ```
 

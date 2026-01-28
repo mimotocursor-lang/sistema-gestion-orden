@@ -8,7 +8,7 @@ Si ves este error, necesitas configurar las variables de entorno.
 
 ### Paso 1: Crear archivo .env.local
 
-En la raíz del proyecto `sistema-gestion-ordenes`, crea un archivo llamado `.env.local`
+En la raíz del proyecto `sistema-gestion-orden`, crea un archivo llamado `.env.local`
 
 ### Paso 2: Obtener las credenciales de Supabase
 
@@ -51,13 +51,13 @@ Puedes copiar las variables directamente:
 
 1. Abre `.env.local` de `sistema-reparaciones`
 2. Copia las variables de Supabase
-3. Pega en `.env.local` de `sistema-gestion-ordenes`
+3. Pega en `.env.local` de `sistema-gestion-orden`
 
 ## 📝 Estructura del archivo .env.local
 
 El archivo debe estar en:
 ```
-sistema-gestion-ordenes/
+sistema-gestion-orden/
 └── .env.local  ← Aquí
 ```
 

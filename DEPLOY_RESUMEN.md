@@ -19,7 +19,7 @@ El proyecto está completamente preparado para deploy en GitHub y Vercel.
 
 ### 1. Preparar GitHub
 ```bash
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 
 # Inicializar Git (si no lo has hecho)
 git init
@@ -27,7 +27,7 @@ git add .
 git commit -m "Initial commit: Sistema listo para deploy"
 
 # Crear repositorio en GitHub y conectar
-git remote add origin https://github.com/tu-usuario/sistema-gestion-ordenes.git
+git remote add origin https://github.com/tu-usuario/sistema-gestion-orden.git
 git branch -M main
 git push -u origin main
 ```

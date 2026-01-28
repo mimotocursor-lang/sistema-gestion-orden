@@ -2,7 +2,7 @@
 
 ## 🎯 Estás en el directorio correcto?
 
-Para usar este proyecto, **DEBES estar dentro del directorio `sistema-gestion-ordenes`**.
+Para usar este proyecto, **DEBES estar dentro del directorio `sistema-gestion-orden`**.
 
 ### ❌ INCORRECTO (desde el directorio raíz):
 ```powershell
@@ -10,10 +10,10 @@ PS C:\Users\Dell\Documents\odenes.clientes> npm install
 # ❌ ERROR: Could not read package.json
 ```
 
-### ✅ CORRECTO (desde sistema-gestion-ordenes):
+### ✅ CORRECTO (desde sistema-gestion-orden):
 ```powershell
-PS C:\Users\Dell\Documents\odenes.clientes> cd sistema-gestion-ordenes
-PS C:\Users\Dell\Documents\odenes.clientes\sistema-gestion-ordenes> npm install
+PS C:\Users\Dell\Documents\odenes.clientes> cd sistema-gestion-orden
+PS C:\Users\Dell\Documents\odenes.clientes\sistema-gestion-orden> npm install
 # ✅ Funciona correctamente
 ```
 
@@ -21,7 +21,7 @@ PS C:\Users\Dell\Documents\odenes.clientes\sistema-gestion-ordenes> npm install
 
 ```powershell
 # 1. Ir al directorio del proyecto
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 
 # 2. Instalar dependencias
 npm install
@@ -39,7 +39,7 @@ npm run dev
 
 ---
 
-**Recuerda**: Siempre `cd sistema-gestion-ordenes` antes de ejecutar comandos npm! 🎯
+**Recuerda**: Siempre `cd sistema-gestion-orden` antes de ejecutar comandos npm! 🎯
 
 
 

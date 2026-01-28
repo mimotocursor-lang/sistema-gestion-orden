@@ -24,7 +24,7 @@ El archivo `.gitignore` ya está configurado e incluye:
 ### 1.2 Inicializar Git (si no lo has hecho)
 
 ```bash
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 
 # Inicializar repositorio
 git init
@@ -41,20 +41,20 @@ git commit -m "Initial commit: Sistema de Gestión de Órdenes"
 1. Ve a [GitHub](https://github.com) e inicia sesión
 2. Haz clic en **"New repository"** (botón verde)
 3. Configura el repositorio:
-   - **Name**: `sistema-gestion-ordenes` (o el nombre que prefieras)
+   - **Name**: `sistema-gestion-orden` (o el nombre que prefieras)
    - **Description**: "Sistema de gestión de órdenes de servicio técnico"
    - **Visibility**: Private (recomendado) o Public
    - ⚠️ **NO marques** "Add a README file" (ya tienes uno)
    - ⚠️ **NO marques** "Add .gitignore" (ya tienes uno)
    - ⚠️ **NO marques** "Choose a license"
 4. Haz clic en **"Create repository"**
-5. Copia la URL del repositorio (ej: `https://github.com/tu-usuario/sistema-gestion-ordenes.git`)
+5. Copia la URL del repositorio (ej: `https://github.com/tu-usuario/sistema-gestion-orden.git`)
 
 ### 1.4 Conectar Repositorio Local con GitHub
 
 ```bash
 # Agregar remote
-git remote add origin https://github.com/tu-usuario/sistema-gestion-ordenes.git
+git remote add origin https://github.com/tu-usuario/sistema-gestion-orden.git
 
 # Cambiar branch a main (si estás en master)
 git branch -M main
@@ -79,7 +79,7 @@ Si te pide autenticación, usa un Personal Access Token de GitHub.
 ### 2.2 Importar Proyecto
 
 1. En el dashboard de Vercel, haz clic en **"Add New Project"**
-2. Selecciona tu repositorio `sistema-gestion-ordenes`
+2. Selecciona tu repositorio `sistema-gestion-orden`
 3. Vercel detectará automáticamente:
    - **Framework Preset**: Astro ✅
    - **Build Command**: `npm run build` ✅
@@ -143,7 +143,7 @@ RESEND_API_KEY
 1. Haz clic en **"Deploy"**
 2. Espera a que Vercel construya tu aplicación (2-5 minutos)
 3. Una vez completado, obtendrás una URL como:
-   - `https://sistema-gestion-ordenes.vercel.app`
+   - `https://sistema-gestion-orden.vercel.app`
 
 ---
 
@@ -273,7 +273,7 @@ vercel --prod
 ## Estructura de Archivos Importantes
 
 ```
-sistema-gestion-ordenes/
+sistema-gestion-orden/
 ├── .env.example          # Plantilla de variables de entorno
 ├── .gitignore           # Archivos ignorados por Git
 ├── vercel.json          # Configuración de Vercel

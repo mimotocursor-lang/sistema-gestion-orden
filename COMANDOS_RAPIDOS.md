@@ -4,11 +4,11 @@
 
 **NUNCA ejecutes los comandos desde el directorio raíz `odenes.clientes`**
 
-Siempre ejecuta los comandos desde dentro de `sistema-gestion-ordenes`:
+Siempre ejecuta los comandos desde dentro de `sistema-gestion-orden`:
 
 ```powershell
 # 1. Cambiar al directorio del proyecto
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 
 # 2. Instalar dependencias
 npm install
@@ -23,7 +23,7 @@ npm run dev
 
 ```powershell
 # Ir al directorio del proyecto
-cd C:\Users\Dell\Documents\odenes.clientes\sistema-gestion-ordenes
+cd C:\Users\Dell\Documents\odenes.clientes\sistema-gestion-orden
 
 # Verificar que estás en el lugar correcto (deberías ver package.json)
 dir package.json
@@ -39,7 +39,7 @@ npm run dev
 
 ```powershell
 # Limpiar e instalar
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
 Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue
 npm cache clean --force
@@ -62,7 +62,7 @@ Después de `npm install`, deberías ver:
 
 ---
 
-**Recuerda**: Siempre `cd sistema-gestion-ordenes` antes de ejecutar cualquier comando npm.
+**Recuerda**: Siempre `cd sistema-gestion-orden` antes de ejecutar cualquier comando npm.
 
 
 

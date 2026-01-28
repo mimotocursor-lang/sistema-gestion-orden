@@ -5,13 +5,13 @@
 ### 1. Subir a GitHub
 
 ```bash
-cd sistema-gestion-ordenes
+cd sistema-gestion-orden
 
 # Si es la primera vez
 git init
 git add .
 git commit -m "Initial commit: Sistema de Gestión de Órdenes"
-git remote add origin https://github.com/TU-USUARIO/sistema-gestion-ordenes.git
+git remote add origin https://github.com/TU-USUARIO/sistema-gestion-orden.git
 git branch -M main
 git push -u origin main
 
