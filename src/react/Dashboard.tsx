@@ -17,6 +17,7 @@ import SecuritySettings from "./components/SecuritySettings";
 import POS from "./components/POS";
 import ProductosStock from "./components/ProductosStock";
 import VentasMetricas from "./components/VentasMetricas";
+import VentasList from "./components/VentasList";
 
 function Header({ 
   userName, 
@@ -63,14 +64,16 @@ function Header({
   const hasSidebar = userRole === "admin" || userRole === "encargado" || userRole === "technician" || userRole === "recepcionista";
 
   return (
-    <header className="bg-brand-black border-b-2 border-brand shadow-lg fixed top-0 left-0 right-0 z-30">
+    <header className="bg-brand-dark border-b border-brand-dark-border-gold shadow-medium fixed top-0 left-0 right-0 z-30" style={{
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(212, 175, 55, 0.1)'
+    }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center gap-2 sm:gap-4">
             {hasSidebar && onMenuToggle && (
               <button
                 onClick={onMenuToggle}
-                className="lg:hidden text-brand p-2 hover:bg-brand-black-lighter rounded-md transition-colors"
+                className="lg:hidden text-brand p-2 hover:bg-brand-dark-lighter rounded-md transition-colors"
                 aria-label="Abrir menú"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,7 +141,7 @@ export default function Dashboard() {
     // Primero intentar desde URL hash
     if (window.location.hash) {
       const hashSection = window.location.hash.substring(1) as DashboardSection;
-      const validSections: DashboardSection[] = ["dashboard", "new-order", "orders", "customers", "branches", "users", "reports", "settings", "security", "pos", "productos-stock", "ventas-metricas"];
+      const validSections: DashboardSection[] = ["dashboard", "new-order", "orders", "customers", "branches", "users", "reports", "settings", "security", "pos", "productos-stock", "ventas", "ventas-metricas"];
       if (validSections.includes(hashSection)) {
         setSection(hashSection);
         return;
@@ -147,7 +150,7 @@ export default function Dashboard() {
     // Luego intentar desde localStorage
     const savedSection = localStorage.getItem("dashboard_section") as DashboardSection | null;
     if (savedSection) {
-      const validSections: DashboardSection[] = ["dashboard", "new-order", "orders", "customers", "branches", "users", "reports", "settings", "security", "pos", "productos-stock", "ventas-metricas"];
+      const validSections: DashboardSection[] = ["dashboard", "new-order", "orders", "customers", "branches", "users", "reports", "settings", "security", "pos", "productos-stock", "ventas", "ventas-metricas"];
       if (validSections.includes(savedSection)) {
         setSection(savedSection);
       }
@@ -167,7 +170,7 @@ export default function Dashboard() {
 
     function handleHashChange() {
       const hashSection = window.location.hash.substring(1) as DashboardSection;
-      const validSections: DashboardSection[] = ["dashboard", "new-order", "orders", "customers", "branches", "users", "reports", "settings", "security", "pos", "productos-stock", "ventas-metricas"];
+      const validSections: DashboardSection[] = ["dashboard", "new-order", "orders", "customers", "branches", "users", "reports", "settings", "security", "pos", "productos-stock", "ventas", "ventas-metricas"];
       if (validSections.includes(hashSection)) {
         setSection(hashSection);
       }
@@ -291,7 +294,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-black-light">
+      <div className="min-h-screen flex items-center justify-center bg-brand-dark-light">
         <p className="text-brand-gold-400">Cargando...</p>
       </div>
     );
@@ -299,8 +302,10 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-black-light">
-        <div className="bg-brand-black-lighter border border-brand-gold-600 p-6 rounded-lg shadow-md max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-brand-dark-light">
+        <div className="bg-brand-dark-lighter border border-brand-dark-border-gold p-6 rounded-lg shadow-medium max-w-md" style={{
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+        }}>
           <h2 className="text-xl font-bold text-red-400 mb-4">Error al Cargar Usuario</h2>
           <p className="text-brand-black-text mb-4">
             No se pudo cargar la información del usuario desde la base de datos.
@@ -326,7 +331,9 @@ export default function Dashboard() {
     // Verificar permisos antes de renderizar
     if (!canAccessSection(user, section)) {
       return (
-        <div className="bg-brand-black-lighter border border-brand-gold-600 rounded-lg shadow-md p-6">
+        <div className="bg-brand-dark-lighter border border-brand-dark-border-gold rounded-lg shadow-medium p-6" style={{
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+        }}>
           <div className="text-center py-12">
             <p className="text-brand-gold-400 text-lg mb-2">Acceso Denegado</p>
             <p className="text-brand-black-text">No tienes permisos para acceder a esta sección.</p>
@@ -373,6 +380,8 @@ export default function Dashboard() {
         return <POS user={user} />;
       case "productos-stock":
         return <ProductosStock user={user} />;
+      case "ventas":
+        return <VentasList user={user} />;
       case "ventas-metricas":
         return <VentasMetricas />;
       default:
@@ -392,7 +401,7 @@ export default function Dashboard() {
     canAccessSection(user, "reports");
 
   return (
-    <div className="min-h-screen bg-brand-black-light pt-20">
+    <div className="min-h-screen bg-brand-dark-light pt-20">
       <Header 
         userName={user.name} 
         userRole={user.role}

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
-import type { Producto, Venta, VentaItem, User } from '@/types';
+import type { Producto, Venta, VentaItem, User, Branch } from '@/types';
 import { formatCurrency } from '@/lib/currency';
+import { printTicket80mm } from '@/lib/generate-ticket-80mm';
 
 interface POSProps {
   user: User;
@@ -25,6 +26,17 @@ export default function POS({ user }: POSProps) {
   const [busquedaManual, setBusquedaManual] = useState('');
   const [productosEncontrados, setProductosEncontrados] = useState<Producto[]>([]);
   const [buscando, setBuscando] = useState(false);
+  const inputBusquedaRef = useRef<HTMLInputElement>(null);
+  const isProcessingRef = useRef(false);
+  const [mostrarRegistroCliente, setMostrarRegistroCliente] = useState(false);
+  const [registrarCliente, setRegistrarCliente] = useState(false);
+  const [clienteData, setClienteData] = useState({
+    name: '',
+    rut_document: '',
+    phone: '',
+    email: '',
+  });
+  const [customerId, setCustomerId] = useState<string | null>(null);
 
   // Calcular total del carrito
   const total = carrito.reduce((sum, item) => sum + item.subtotal, 0);
@@ -288,13 +300,78 @@ export default function POS({ user }: POSProps) {
         }
       }
 
-      // Actualizar venta con total y estado
+      // Descontar stock manualmente para asegurar que se descuente
+      for (const item of carrito) {
+        const { data: productoActual, error: productoError } = await supabase
+          .from('productos')
+          .select('stock_actual')
+          .eq('id', item.producto.id)
+          .single();
+
+        if (productoError || !productoActual) {
+          console.error(`Error obteniendo stock para producto ${item.producto.id}:`, productoError);
+          continue;
+        }
+
+        const nuevoStock = productoActual.stock_actual - item.cantidad;
+        
+        // Actualizar stock directamente
+        const { error: updateStockError } = await supabase
+          .from('productos')
+          .update({ stock_actual: nuevoStock })
+          .eq('id', item.producto.id);
+
+        if (updateStockError) {
+          console.error(`Error actualizando stock para producto ${item.producto.id}:`, updateStockError);
+          // Continuar aunque falle, el trigger debería manejarlo
+        } else {
+          console.log(`Stock actualizado: ${item.producto.nombre} - ${productoActual.stock_actual} → ${nuevoStock}`);
+        }
+
+        // Registrar movimiento de inventario manualmente
+        await supabase.from('inventario_movimientos').insert({
+          producto_id: item.producto.id,
+          tipo_movimiento: 'venta',
+          cantidad: -item.cantidad,
+          cantidad_anterior: productoActual.stock_actual,
+          cantidad_nueva: nuevoStock,
+          venta_id: ventaActual.id,
+          usuario_id: user.id,
+          observaciones: 'Venta POS'
+        });
+      }
+
+      // Registrar cliente si se solicitó
+      let clienteIdFinal = customerId;
+      if (registrarCliente && clienteData.name.trim()) {
+        const { data: nuevoCliente, error: clienteError } = await supabase
+          .from('customers')
+          .insert({
+            name: clienteData.name.trim(),
+            rut_document: clienteData.rut_document.trim() || null,
+            phone: clienteData.phone.trim() || '',
+            phone_country_code: '+56', // Chile por defecto
+            email: clienteData.email.trim() || '',
+          })
+          .select()
+          .single();
+
+        if (clienteError) {
+          console.error('Error registrando cliente:', clienteError);
+          // Continuar sin cliente si falla
+        } else if (nuevoCliente) {
+          clienteIdFinal = nuevoCliente.id;
+        }
+      }
+
+      // Actualizar venta con total, estado y cliente
       const { error: ventaError } = await supabase
         .from('ventas')
         .update({
           total,
           metodo_pago: metodoPago,
           estado: 'completada',
+          customer_id: clienteIdFinal,
         })
         .eq('id', ventaActual.id);
 
@@ -304,8 +381,31 @@ export default function POS({ user }: POSProps) {
         throw ventaError;
       }
 
-      // Los movimientos de inventario se registran automáticamente mediante triggers
-      // cuando se insertan los items de venta y la venta está en estado 'completada'
+      // Cargar datos completos para el ticket
+      const { data: ventaCompleta } = await supabase
+        .from('ventas')
+        .select('*')
+        .eq('id', ventaActual.id)
+        .single();
+
+      const { data: itemsCompletos } = await supabase
+        .from('venta_items')
+        .select(`
+          *,
+          producto:productos(*)
+        `)
+        .eq('venta_id', ventaActual.id);
+
+      // Cargar datos de la sucursal
+      let sucursalData: Branch | null = null;
+      if (user.sucursal_id) {
+        const { data: branchData } = await supabase
+          .from('branches')
+          .select('*')
+          .eq('id', user.sucursal_id)
+          .single();
+        sucursalData = branchData;
+      }
 
       const numeroVenta = ventaActual.numero_venta;
 
@@ -314,6 +414,33 @@ export default function POS({ user }: POSProps) {
       setVentaActual(null);
       setMostrarPago(false);
       setError(null);
+
+      // Cargar datos del cliente si existe
+      let customerData = null;
+      if (clienteIdFinal) {
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('id', clienteIdFinal)
+          .single();
+        customerData = customer;
+      }
+
+      // Imprimir boleta automáticamente
+      if (ventaCompleta && itemsCompletos && itemsCompletos.length > 0) {
+        try {
+          await printTicket80mm({
+            venta: ventaCompleta,
+            items: itemsCompletos as Array<VentaItem & { producto: Producto }>,
+            sucursal: sucursalData,
+            customer: customerData,
+            total
+          });
+        } catch (ticketError) {
+          console.error('Error imprimiendo ticket:', ticketError);
+          // No bloquear la venta si falla la impresión
+        }
+      }
 
       // Mostrar mensaje de éxito
       alert(`Venta completada: ${numeroVenta}\nTotal: ${formatCurrency(total)}`);
@@ -355,8 +482,88 @@ export default function POS({ user }: POSProps) {
     }
   }, []);
 
+  // Interceptar eventos de teclado para prevenir acciones no deseadas del navegador
+  useEffect(() => {
+    // Auto-focus en el input para escáneres
+    if (inputBusquedaRef.current) {
+      inputBusquedaRef.current.focus();
+    }
+
+    // Interceptar TODOS los eventos de teclado a nivel global para prevenir descargas
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Si el input está enfocado, interceptar Enter y cualquier combinación sospechosa
+      if (
+        inputBusquedaRef.current &&
+        document.activeElement === inputBusquedaRef.current
+      ) {
+        // Prevenir Enter
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+
+          const currentValue = inputBusquedaRef.current.value.trim();
+          if (currentValue && !loading && !isProcessingRef.current) {
+            isProcessingRef.current = true;
+            // Procesar el código de barras aquí
+            buscarProductoPorCodigo(currentValue).then((prod) => {
+              if (prod) {
+                agregarAlCarrito(prod);
+                setBusquedaManual('');
+                setProductosEncontrados([]);
+              } else {
+                setError(`Producto no encontrado: ${currentValue}`);
+              }
+              isProcessingRef.current = false;
+            }).catch(() => {
+              isProcessingRef.current = false;
+            });
+          }
+
+          return false;
+        }
+
+        // Prevenir combinaciones de teclas que podrían causar descargas
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          (e.key === 's' || e.key === 'S' || e.key === 'j' || e.key === 'J')
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
+        }
+
+        // Prevenir Ctrl+Shift+J (consola de desarrollador en algunos navegadores)
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          (e.key === 'j' || e.key === 'J')
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
+        }
+      }
+    };
+
+    // Interceptar en la fase de captura para asegurar que se ejecute primero
+    document.addEventListener('keydown', handleGlobalKeyDown, true);
+    document.addEventListener('keypress', handleGlobalKeyDown, true);
+    document.addEventListener('keyup', handleGlobalKeyDown, true);
+
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown, true);
+      document.removeEventListener('keypress', handleGlobalKeyDown, true);
+      document.removeEventListener('keyup', handleGlobalKeyDown, true);
+    };
+  }, [loading, buscarProductoPorCodigo, agregarAlCarrito]);
+
   return (
-    <div className="bg-brand-black-lighter border border-brand-gold-600 rounded-lg shadow-md p-6">
+    <div className="bg-brand-dark-lighter border border-brand-dark-border-gold rounded-lg shadow-medium p-6" style={{
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+    }}>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-brand mb-2">Punto de Venta (POS)</h2>
         {ventaActual && (
@@ -374,6 +581,7 @@ export default function POS({ user }: POSProps) {
         <h3 className="text-lg font-semibold text-brand-gold-400 mb-3">Buscar Producto</h3>
         <div className="flex flex-col sm:flex-row gap-2">
           <input
+            ref={inputBusquedaRef}
             type="text"
             placeholder="Buscar por nombre o código..."
             value={busquedaManual}
@@ -381,12 +589,38 @@ export default function POS({ user }: POSProps) {
               setBusquedaManual(e.target.value);
               buscarProductosManual(e.target.value);
             }}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-brand-black-border bg-brand-black rounded-lg focus:ring-2 focus:ring-brand focus:border-brand text-base sm:text-lg text-brand-black-text"
+            onKeyDown={(e) => {
+              // Manejador de respaldo directamente en el input
+              if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const currentValue = (e.target as HTMLInputElement).value.trim();
+                if (currentValue && !loading && !isProcessingRef.current) {
+                  isProcessingRef.current = true;
+                  buscarProductoPorCodigo(currentValue).then((prod) => {
+                    if (prod) {
+                      agregarAlCarrito(prod);
+                      setBusquedaManual('');
+                      setProductosEncontrados([]);
+                    } else {
+                      setError(`Producto no encontrado: ${currentValue}`);
+                    }
+                    isProcessingRef.current = false;
+                  }).catch(() => {
+                    isProcessingRef.current = false;
+                  });
+                }
+
+                return false;
+              }
+            }}
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-brand-dark-border bg-brand-dark rounded-lg focus:ring-2 focus:ring-brand focus:border-brand text-base sm:text-lg text-brand-dark-text"
             data-barcode-scanner="enabled"
           />
           <button
             onClick={() => buscarProductosManual(busquedaManual)}
-            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-brand text-brand-black rounded-lg font-semibold hover:bg-brand-light disabled:opacity-50 font-bold transition-colors whitespace-nowrap"
+            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-brand text-brand-dark rounded-lg font-semibold hover:bg-brand-light disabled:opacity-50 font-bold transition-colors whitespace-nowrap shadow-gold"
             disabled={buscando || !busquedaManual}
           >
             {buscando ? 'Buscando...' : 'Buscar'}
@@ -395,11 +629,11 @@ export default function POS({ user }: POSProps) {
 
         {/* Lista de productos encontrados */}
         {productosEncontrados.length > 0 && (
-          <div className="mt-3 max-h-48 overflow-y-auto border border-brand-gold-600 rounded-lg bg-brand-black">
+          <div className="mt-3 max-h-48 overflow-y-auto border border-brand-dark-border-gold rounded-lg bg-brand-dark">
             {productosEncontrados.map((producto) => (
               <div
                 key={producto.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-brand-black-border hover:bg-brand-black-lighter cursor-pointer transition-colors gap-2 sm:gap-0"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-brand-dark-border hover:bg-brand-dark-lighter cursor-pointer transition-colors gap-2 sm:gap-0"
                 onClick={() => {
                   if (producto.stock_actual <= 0) {
                     setError(`Sin stock: ${producto.nombre}`);
@@ -411,7 +645,7 @@ export default function POS({ user }: POSProps) {
                 }}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-brand-black-text truncate">{producto.nombre}</p>
+                  <p className="font-medium text-brand-dark-text truncate">{producto.nombre}</p>
                   <p className="text-xs sm:text-sm text-brand-gold-400 truncate">
                     {producto.codigo_barras && `Código: ${producto.codigo_barras} • `}
                     Stock: {producto.stock_actual} • {formatCurrency(producto.precio_venta)}
@@ -428,7 +662,7 @@ export default function POS({ user }: POSProps) {
                     setBusquedaManual('');
                     setProductosEncontrados([]);
                   }}
-                  className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-brand text-brand-black rounded hover:bg-brand-light disabled:opacity-50 font-bold transition-colors whitespace-nowrap"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-brand text-brand-dark rounded hover:bg-brand-light disabled:opacity-50 font-bold transition-colors whitespace-nowrap shadow-gold"
                   disabled={producto.stock_actual <= 0}
                 >
                   Agregar
@@ -453,10 +687,10 @@ export default function POS({ user }: POSProps) {
             {carrito.map((item) => (
               <div
                 key={item.producto.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-brand-black rounded border border-brand-gold-600 gap-3"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-brand-dark rounded border border-brand-dark-border-gold gap-3"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-brand-black-text truncate">{item.producto.nombre}</p>
+                  <p className="font-medium text-brand-dark-text truncate">{item.producto.nombre}</p>
                   <p className="text-xs sm:text-sm text-brand-gold-400">
                     {formatCurrency(item.precio_unitario)} c/u
                   </p>
@@ -476,13 +710,13 @@ export default function POS({ user }: POSProps) {
                       onChange={(e) =>
                         actualizarCantidad(item.producto.id, parseInt(e.target.value) || 0)
                       }
-                      className="w-16 sm:w-20 text-center border border-brand-black-border bg-brand-black-lighter rounded px-2 py-1 text-brand-black-text text-base sm:text-lg"
+                      className="w-16 sm:w-20 text-center border border-brand-dark-border bg-brand-dark-lighter rounded px-2 py-1 text-brand-dark-text text-base sm:text-lg"
                       min="1"
                       disabled={loading}
                     />
                     <button
                       onClick={() => actualizarCantidad(item.producto.id, item.cantidad + 1)}
-                      className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-brand text-brand-black rounded hover:bg-brand-light transition-colors font-bold text-lg"
+                      className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-brand text-brand-dark rounded hover:bg-brand-light transition-colors font-bold text-lg shadow-gold"
                       disabled={loading}
                     >
                       +
@@ -517,7 +751,7 @@ export default function POS({ user }: POSProps) {
                 }
                 setMostrarPago(true);
               }}
-              className="flex-1 py-3 bg-brand text-brand-black rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-brand/50 text-base sm:text-lg"
+              className="flex-1 py-3 bg-brand text-brand-dark rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-gold-lg text-base sm:text-lg"
               disabled={loading || carrito.length === 0}
             >
               Finalizar Venta
@@ -532,6 +766,60 @@ export default function POS({ user }: POSProps) {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Opción de registrar cliente */}
+            <div className="bg-brand-dark-lighter border border-brand-dark-border-gold rounded-lg p-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={registrarCliente}
+                  onChange={(e) => {
+                    setRegistrarCliente(e.target.checked);
+                    if (!e.target.checked) {
+                      setClienteData({ name: '', rut_document: '', phone: '', email: '' });
+                      setCustomerId(null);
+                    }
+                  }}
+                  className="w-5 h-5 text-brand"
+                />
+                <span className="text-sm font-medium text-brand-gold-400">
+                  Registrar cliente para esta venta
+                </span>
+              </label>
+              
+              {registrarCliente && (
+                <div className="mt-4 space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Nombre del cliente"
+                    value={clienteData.name}
+                    onChange={(e) => setClienteData({ ...clienteData, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-brand-dark-border bg-brand-dark rounded text-brand-dark-text"
+                  />
+                  <input
+                    type="text"
+                    placeholder="RUT (opcional)"
+                    value={clienteData.rut_document}
+                    onChange={(e) => setClienteData({ ...clienteData, rut_document: e.target.value })}
+                    className="w-full px-3 py-2 border border-brand-dark-border bg-brand-dark rounded text-brand-dark-text"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Teléfono (opcional)"
+                    value={clienteData.phone}
+                    onChange={(e) => setClienteData({ ...clienteData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-brand-dark-border bg-brand-dark rounded text-brand-dark-text"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email (opcional)"
+                    value={clienteData.email}
+                    onChange={(e) => setClienteData({ ...clienteData, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-brand-dark-border bg-brand-dark rounded text-brand-dark-text"
+                  />
+                </div>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-brand-gold-400 mb-2">
                 Método de Pago
@@ -543,8 +831,8 @@ export default function POS({ user }: POSProps) {
                     onClick={() => setMetodoPago(metodo)}
                     className={`py-2 px-4 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                       metodoPago === metodo
-                        ? 'bg-brand text-brand-black font-bold shadow-lg shadow-brand/50'
-                        : 'bg-brand-black border border-brand-gold-600 text-brand-gold-400 hover:bg-brand-black-lighter'
+                        ? 'bg-brand text-brand-dark font-bold shadow-gold-lg'
+                        : 'bg-brand-dark border border-brand-dark-border-gold text-brand-gold-400 hover:bg-brand-dark-lighter'
                     }`}
                   >
                     {metodo}
@@ -555,14 +843,14 @@ export default function POS({ user }: POSProps) {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={finalizarVenta}
-                className="flex-1 py-3 bg-brand text-brand-black rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 transition-colors shadow-lg shadow-brand/50 text-base sm:text-lg"
+                className="flex-1 py-3 bg-brand text-brand-dark rounded-lg font-bold hover:bg-brand-light disabled:opacity-50 transition-colors shadow-gold-lg text-base sm:text-lg"
                 disabled={loading}
               >
                 Confirmar Pago
               </button>
               <button
                 onClick={() => setMostrarPago(false)}
-                className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-brand-black-lighter border border-brand-gold-600 text-brand-gold-400 rounded-lg font-semibold hover:bg-brand-black transition-colors whitespace-nowrap"
+                className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-brand-dark-lighter border border-brand-dark-border-gold text-brand-gold-400 rounded-lg font-semibold hover:bg-brand-dark transition-colors whitespace-nowrap"
                 disabled={loading}
               >
                 Volver

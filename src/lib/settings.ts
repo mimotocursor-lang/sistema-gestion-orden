@@ -14,6 +14,7 @@ export interface SystemSettings {
   header_logo: LogoConfig;
   pdf_logo: LogoConfig;
   warranty_policies: WarrantyConfig;
+  accessory_warranty_policies?: WarrantyConfig;
 }
 
 const defaultSettings: SystemSettings = {
@@ -25,6 +26,14 @@ const defaultSettings: SystemSettings = {
       "• NO cubre daños por mal uso, golpes, caídas o líquidos.",
       "• Presentar boleta o factura para hacer efectiva la garantía.",
       "• Cualquier reparación por terceros anula la garantía.",
+    ],
+  },
+  accessory_warranty_policies: {
+    policies: [
+      "• Garantía 30 días por defectos de fabricación.",
+      "• NO cubre daños por mal uso, golpes o caídas.",
+      "• Presentar boleta para hacer efectiva la garantía.",
+      "• La garantía no cubre desgaste normal del producto.",
     ],
   },
 };

@@ -14,7 +14,8 @@ export type DashboardSection =
   | "security"
   | "pos"
   | "productos-stock"
-  | "ventas-metricas";
+  | "ventas-metricas"
+  | "ventas";
 
 interface SidebarProps {
   user: User;
@@ -52,6 +53,7 @@ export default function Sidebar({
     { id: "orders", label: "Órdenes", icon: "📋" },
     { id: "pos", label: "Punto de Venta", icon: "🛒" },
     { id: "productos-stock", label: "Productos/Stock", icon: "📦" },
+    { id: "ventas", label: "Ventas", icon: "🧾" },
     { id: "ventas-metricas", label: "Métricas Ventas", icon: "📈" },
     { id: "customers", label: "Clientes", icon: "👥" },
     { id: "branches", label: "Sucursales", icon: "🏢" },
@@ -76,9 +78,12 @@ export default function Sidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-20 left-0 h-[calc(100vh-5rem)] w-64 bg-brand-black border-r border-brand-gold-600 shadow-xl z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-20 left-0 h-[calc(100vh-5rem)] w-64 bg-brand-dark-light border-r border-brand-dark-border-gold shadow-soft z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{
+          boxShadow: '2px 0 12px rgba(0, 0, 0, 0.4), inset -1px 0 0 rgba(212, 175, 55, 0.1)'
+        }}
       >
         <nav className="p-4 space-y-2">
           {filteredItems.map((item) => (
@@ -90,8 +95,8 @@ export default function Sidebar({
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 ${
                 currentSection === item.id
-                  ? "bg-brand text-brand-black font-bold shadow-lg shadow-brand/50"
-                  : "text-brand-gold-400 hover:bg-brand-black-lighter hover:text-brand"
+                  ? "bg-brand text-brand-dark font-bold shadow-gold"
+                  : "text-brand-dark-text-light hover:bg-brand-dark-lighter hover:text-brand border border-transparent hover:border-brand-dark-border-gold"
               }`}
             >
               <span className="text-xl">{item.icon}</span>

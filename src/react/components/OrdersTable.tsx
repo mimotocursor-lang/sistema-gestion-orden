@@ -41,6 +41,7 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
     email: boolean;
     whatsapp: boolean;
   }>({ email: true, whatsapp: false });
+  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
   const [pdfOrderData, setPdfOrderData] = useState<{
     order: WorkOrder;
     services: Service[];
@@ -622,6 +623,215 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
     }
   }
 
+  async function handleResendPDFEmail(order: WorkOrder) {
+    if (!order.customer?.email) {
+      alert("El cliente no tiene email configurado");
+      return;
+    }
+
+    try {
+      setResendingEmail(order.id);
+      
+      // Cargar datos necesarios para el PDF (similar a handleViewPDF)
+      const { data: orderServices, error: servicesError } = await supabase
+        .from("order_services")
+        .select(`
+          *,
+          service:services(description)
+        `)
+        .eq("order_id", order.id);
+
+      if (servicesError) throw servicesError;
+
+      const orderServicesWithDescription = (orderServices || []).map((os: any) => ({
+        ...os,
+        description: os.service?.description || null
+      }));
+
+      // Cargar notas
+      const { data: orderNotes, error: notesError } = await supabase
+        .from("order_notes")
+        .select("note")
+        .eq("order_id", order.id)
+        .order("created_at", { ascending: false });
+
+      if (notesError) throw notesError;
+
+      // Cargar datos actualizados de la sucursal
+      let branchData = null;
+      if (order.sucursal_id) {
+        const { data: updatedBranch, error: branchError } = await supabase
+          .from("branches")
+          .select("*")
+          .eq("id", order.sucursal_id)
+          .single();
+        
+        if (!branchError && updatedBranch) {
+          branchData = updatedBranch;
+        } else if (order.sucursal) {
+          branchData = Array.isArray(order.sucursal) ? order.sucursal[0] : order.sucursal;
+        }
+      } else if (order.sucursal) {
+        branchData = Array.isArray(order.sucursal) ? order.sucursal[0] : order.sucursal;
+      }
+
+      // Convertir order_services a servicios
+      const services: Service[] = (orderServices || []).map((os: any) => ({
+        id: os.service_id || os.id,
+        name: os.service_name,
+        description: null,
+        default_price: os.unit_price || 0,
+        created_at: os.created_at || new Date().toISOString(),
+      }));
+
+      // Calcular serviceValue
+      let serviceValue = order.labor_cost || 0;
+      if (orderServices && orderServices.length > 0) {
+        serviceValue = orderServices.reduce((sum: number, os: any) => sum + (os.total_price || 0), 0);
+      }
+
+      const replacementCost = order.replacement_cost || 0;
+      const warrantyDays = order.warranty_days || 30;
+      const notes = (orderNotes || []).map((n: any) => n.note);
+
+      // Construir all_devices si hay devices_data (similar a handleViewPDF)
+      let allDevices = null;
+      if ((order as any).devices_data && Array.isArray((order as any).devices_data) && (order as any).devices_data.length > 0) {
+        const additionalDevicesTotalReplacement = ((order as any).devices_data as any[]).reduce(
+          (sum: number, device: any) => sum + (device.replacement_cost || 0), 
+          0
+        );
+        const additionalDevicesTotalLabor = ((order as any).devices_data as any[]).reduce(
+          (sum: number, device: any) => sum + (device.labor_cost || 0), 
+          0
+        );
+        
+        const firstDeviceReplacementCost = Math.max(0, (order.replacement_cost || 0) - additionalDevicesTotalReplacement);
+        const firstDeviceLaborCost = Math.max(0, (order.labor_cost || 0) - additionalDevicesTotalLabor);
+        
+        // Calcular servicios del primer equipo
+        let firstDeviceServicesCount = services.length;
+        let additionalDevicesServicesCount = 0;
+        
+        if ((order as any).devices_data && Array.isArray((order as any).devices_data)) {
+          ((order as any).devices_data as any[]).forEach((device: any) => {
+            if (device.selected_services && Array.isArray(device.selected_services)) {
+              additionalDevicesServicesCount += device.selected_services.length;
+            }
+          });
+          firstDeviceServicesCount = services.length - additionalDevicesServicesCount;
+        }
+        
+        const firstDeviceOrderServices = (orderServices || []).slice(0, firstDeviceServicesCount);
+        const firstDeviceServicesWithPrices = firstDeviceOrderServices.map((os: any) => ({
+          id: (os as any).service_id || (os as any).id,
+          name: os.service_name,
+          description: (os as any).description || null,
+          quantity: os.quantity || 1,
+          unit_price: os.unit_price || 0,
+          total_price: os.total_price || (os.unit_price || 0) * (os.quantity || 1),
+        }));
+        
+        allDevices = [
+          {
+            index: 1,
+            device_type: order.device_type || "iphone",
+            device_model: order.device_model || "",
+            device_serial_number: order.device_serial_number || null,
+            device_unlock_code: order.device_unlock_code || null,
+            device_unlock_pattern: order.device_unlock_pattern || null,
+            problem_description: order.problem_description || "",
+            checklist_data: order.checklist_data || null,
+            replacement_cost: firstDeviceReplacementCost,
+            labor_cost: firstDeviceLaborCost,
+            selected_services: firstDeviceServicesWithPrices,
+          },
+          ...((order as any).devices_data as any[]).map((device: any, idx: number) => ({
+            index: idx + 2,
+            device_type: device.device_type || "iphone",
+            device_model: device.device_model || "",
+            device_serial_number: device.device_serial_number || null,
+            device_unlock_code: device.device_unlock_code || null,
+            device_unlock_pattern: device.device_unlock_pattern || null,
+            problem_description: device.problem_description || "",
+            checklist_data: device.checklist_data || null,
+            replacement_cost: device.replacement_cost || 0,
+            labor_cost: device.labor_cost || 0,
+            selected_services: device.selected_services || [],
+          })),
+        ];
+      }
+
+      // Crear orden con datos actualizados
+      const orderWithUpdatedBranch = {
+        ...order,
+        sucursal: branchData,
+        ...(allDevices ? { all_devices: allDevices } : {}),
+      };
+
+      // Generar PDF
+      const pdfBlob = await generatePDFBlob(
+        orderWithUpdatedBranch,
+        services,
+        serviceValue,
+        replacementCost,
+        warrantyDays,
+        order.checklist_data as Record<string, 'ok' | 'damaged' | 'replaced'> | null,
+        notes.length > 0 ? notes : undefined,
+        orderServicesWithDescription
+      );
+
+      // Convertir PDF a base64
+      const pdfBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(',')[1]; // Remover el prefijo data:application/pdf;base64,
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(pdfBlob);
+      });
+
+      // Enviar email
+      const emailResponse = await fetch('/api/send-order-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: order.customer.email,
+          customerName: order.customer.name,
+          orderNumber: order.order_number,
+          pdfBase64: pdfBase64,
+          branchName: branchData?.name || order.sucursal?.name,
+          branchEmail: branchData?.email || order.sucursal?.email,
+          emailType: 'order_created',
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        const errorData = await emailResponse.json().catch(() => ({ error: 'Error desconocido' }));
+        const errorMessage = errorData.error || 'Error al enviar email';
+        
+        // Si el error es sobre el dominio de prueba, mostrar mensaje más útil
+        if (errorMessage.includes('testing emails') || errorMessage.includes('verify a domain')) {
+          throw new Error('Para enviar emails a clientes, necesitas verificar un dominio en Resend. Ve a resend.com/domains para configurarlo. Mientras tanto, solo puedes enviar a tecsolution26@gmail.com');
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await emailResponse.json();
+      alert(`✅ PDF reenviado exitosamente a ${order.customer.email}`);
+      console.log("[ORDERS TABLE] PDF reenviado:", result);
+    } catch (error: any) {
+      console.error("[ORDERS TABLE] Error reenviando PDF:", error);
+      alert(`❌ Error al reenviar PDF: ${error.message || 'Error desconocido'}`);
+    } finally {
+      setResendingEmail(null);
+    }
+  }
+
   async function handleSendWhatsApp(order: WorkOrder) {
     if (!order.customer) {
       alert("No hay información del cliente");
@@ -966,16 +1176,30 @@ export default function OrdersTable({ technicianId, isAdmin = false, user, onNew
                         {openActionsMenu === order.id && (
                           <div className="absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-md shadow-lg z-10">
                             {order.customer && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSendWhatsApp(order);
-                                  setOpenActionsMenu(null);
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
-                              >
-                                <span>📱</span> WhatsApp
-                              </button>
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleResendPDFEmail(order);
+                                    setOpenActionsMenu(null);
+                                  }}
+                                  disabled={resendingEmail === order.id || !order.customer.email}
+                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title={!order.customer.email ? "El cliente no tiene email configurado" : "Reenviar PDF por email"}
+                                >
+                                  <span>📧</span> {resendingEmail === order.id ? "Enviando..." : "Reenviar PDF"}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSendWhatsApp(order);
+                                    setOpenActionsMenu(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                                >
+                                  <span>📱</span> WhatsApp
+                                </button>
+                              </>
                             )}
                             {(isAdmin || hasPermission(user || null, "modify_orders")) && (
                               <>

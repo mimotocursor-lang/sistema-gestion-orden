@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
 import type { Producto, User } from '@/types';
@@ -17,6 +17,8 @@ export default function ProductosStock({ user }: ProductosStockProps) {
   const [busqueda, setBusqueda] = useState('');
   const [modoEscaneo, setModoEscaneo] = useState(false);
   const [codigoEscaneado, setCodigoEscaneado] = useState('');
+  const inputCodigoBarrasRef = useRef<HTMLInputElement>(null);
+  const isProcessingRef = useRef(false);
 
   // Formulario
   const [formData, setFormData] = useState({
@@ -63,6 +65,73 @@ export default function ProductosStock({ user }: ProductosStockProps) {
   useEffect(() => {
     cargarProductos();
   }, [cargarProductos]);
+
+  // Interceptar eventos de teclado para prevenir acciones no deseadas del navegador
+  useEffect(() => {
+    // Auto-focus en el input para escáneres cuando el formulario está visible
+    if (mostrarFormulario && inputCodigoBarrasRef.current) {
+      // Usar setTimeout para asegurar que el DOM esté listo
+      setTimeout(() => {
+        if (inputCodigoBarrasRef.current) {
+          inputCodigoBarrasRef.current.focus();
+        }
+      }, 100);
+    }
+
+    // Interceptar eventos de teclado para prevenir acciones no deseadas
+    // Estrategia: Solo prevenir combinaciones problemáticas en fase de captura
+    // Para Enter, prevenir solo si el input está enfocado, NO cuando el modo escaneo está activo globalmente
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const inputEnfocado = inputCodigoBarrasRef.current && 
+                            document.activeElement === inputCodigoBarrasRef.current;
+      const target = e.target as HTMLElement;
+      const esInputCodigoBarras = target === inputCodigoBarrasRef.current ||
+                                   (target.tagName === 'INPUT' && 
+                                    target.getAttribute('data-barcode-scanner') === 'enabled');
+
+      // Prevenir combinaciones problemáticas (siempre)
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === 's' || e.key === 'S' || e.key === 'j' || e.key === 'J')
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        (e.key === 'j' || e.key === 'J')
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+
+      // Para Enter: solo prevenir si el input está enfocado
+      // Si el modo escaneo está activo pero el input NO está enfocado, NO prevenir
+      // para que el hook useBarcodeScanner pueda procesar el código
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        if (inputEnfocado || esInputCodigoBarras) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+        // Si modo escaneo está activo pero input NO enfocado, NO hacer nada aquí
+        // Dejar que el hook useBarcodeScanner maneje el Enter
+      }
+    };
+
+    // Agregar listener en fase de burbuja (después del hook) para no interferir
+    window.addEventListener('keydown', handleGlobalKeyDown, false);
+
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown, false);
+    };
+  }, [mostrarFormulario, modoEscaneo]);
 
   // Manejar escaneo de código de barras
   const manejarEscaneo = useCallback(
@@ -122,11 +191,26 @@ export default function ProductosStock({ user }: ProductosStockProps) {
       setLoading(true);
       setError(null);
 
+      // Validar que el nombre no esté vacío
+      if (!formData.nombre || formData.nombre.trim() === '') {
+        setError('El nombre del producto es obligatorio');
+        setLoading(false);
+        return;
+      }
+
+      // Validar precio de venta
+      const precioVenta = parseFloat(formData.precio_venta);
+      if (isNaN(precioVenta) || precioVenta < 0) {
+        setError('El precio de venta debe ser un número válido mayor o igual a 0');
+        setLoading(false);
+        return;
+      }
+
       const datos = {
-        codigo_barras: formData.codigo_barras || null,
-        nombre: formData.nombre,
-        categoria: formData.categoria || null,
-        precio_venta: parseFloat(formData.precio_venta) || 0,
+        codigo_barras: formData.codigo_barras && formData.codigo_barras.trim() !== '' ? formData.codigo_barras.trim() : null,
+        nombre: formData.nombre.trim(),
+        categoria: formData.categoria && formData.categoria.trim() !== '' ? formData.categoria.trim() : null,
+        precio_venta: precioVenta,
         costo: parseFloat(formData.costo) || 0,
         stock_actual: parseInt(formData.stock_actual) || 0,
         stock_minimo: parseInt(formData.stock_minimo) || 0,
@@ -134,19 +218,35 @@ export default function ProductosStock({ user }: ProductosStockProps) {
         sucursal_id: user.sucursal_id || null,
       };
 
+      console.log('[ProductosStock] Guardando producto:', datos);
+
       if (productoEditando) {
         // Actualizar
-        const { error } = await supabase
+        console.log('[ProductosStock] Actualizando producto ID:', productoEditando.id);
+        const { data, error } = await supabase
           .from('productos')
           .update(datos)
-          .eq('id', productoEditando.id);
+          .eq('id', productoEditando.id)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('[ProductosStock] Error actualizando:', error);
+          throw error;
+        }
+        console.log('[ProductosStock] Producto actualizado:', data);
       } else {
         // Crear nuevo
-        const { error } = await supabase.from('productos').insert(datos);
+        console.log('[ProductosStock] Creando nuevo producto');
+        const { data, error } = await supabase
+          .from('productos')
+          .insert(datos)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('[ProductosStock] Error creando:', error);
+          throw error;
+        }
+        console.log('[ProductosStock] Producto creado:', data);
       }
 
       // Limpiar formulario y recargar
@@ -310,11 +410,17 @@ export default function ProductosStock({ user }: ProductosStockProps) {
       )}
 
       {modoEscaneo && (
-        <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-          <p className="font-medium">Modo Escaneo Activado</p>
-          <p className="text-sm">
-            Escanea un código de barras para crear o editar un producto
-            {codigoEscaneado && ` (Último: ${codigoEscaneado})`}
+        <div className="mb-4 p-4 bg-green-100 border-2 border-green-500 rounded-lg">
+          <p className="font-bold text-green-800 text-lg mb-2">🟢 Modo Escaneo ACTIVADO</p>
+          <p className="text-sm text-green-700">
+            Escanea un código de barras desde cualquier lugar de la pantalla.
+            <br />
+            Si el producto existe, se abrirá para editar. Si no existe, se creará uno nuevo.
+            {codigoEscaneado && (
+              <span className="block mt-2 font-semibold">
+                Último código escaneado: {codigoEscaneado}
+              </span>
+            )}
           </p>
         </div>
       )}
@@ -342,12 +448,46 @@ export default function ProductosStock({ user }: ProductosStockProps) {
                 Código de Barras <span className="text-slate-400 text-xs">(Opcional)</span>
               </label>
               <input
+                ref={inputCodigoBarrasRef}
                 type="text"
                 value={formData.codigo_barras}
                 onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
+                onKeyDown={(e) => {
+                  // Manejador de respaldo directamente en el input
+                  if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    // El hook useBarcodeScanner ya maneja el procesamiento
+                    return false;
+                  }
+                  
+                  // Prevenir combinaciones de teclas problemáticas
+                  if (
+                    (e.ctrlKey || e.metaKey) &&
+                    (e.key === 's' || e.key === 'S' || e.key === 'j' || e.key === 'J')
+                  ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                  }
+                  
+                  if (
+                    (e.ctrlKey || e.metaKey) &&
+                    e.shiftKey &&
+                    (e.key === 'j' || e.key === 'J')
+                  ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded"
                 placeholder="Escanea o ingresa código (opcional)"
                 data-barcode-scanner="enabled"
+                autoFocus={mostrarFormulario}
               />
             </div>
             <div>

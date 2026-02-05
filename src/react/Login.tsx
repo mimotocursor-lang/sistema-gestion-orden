@@ -126,10 +126,16 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-brand-black to-brand-black-light">
+    <div className="min-h-screen flex flex-col items-center justify-center" style={{
+      background: 'linear-gradient(135deg, #121212 0%, #1e1e1e 50%, #1a1a1a 100%)',
+      backgroundAttachment: 'fixed'
+    }}>
       <form
         onSubmit={onLogin}
-        className="max-w-md w-full bg-brand-black-lighter border border-brand-gold-600 p-8 rounded-lg shadow-2xl space-y-6 backdrop-blur-sm"
+        className="max-w-md w-full bg-brand-dark-lighter border border-brand-dark-border-gold p-8 rounded-lg space-y-6 backdrop-blur-sm"
+        style={{
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(212, 175, 55, 0.1)'
+        }}
       >
         <div className="text-center">
           <img 

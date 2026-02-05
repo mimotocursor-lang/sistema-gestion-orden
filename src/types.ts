@@ -127,3 +127,80 @@ export type OrderStatus = 'en_proceso' | 'por_entregar' | 'entregada' | 'rechaza
 export type Priority = 'baja' | 'media' | 'urgente';
 export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
 
+// ============================================
+// Tipos para el módulo de Ventas y Stock
+// ============================================
+
+export interface Producto {
+  id: string;
+  codigo_barras?: string | null;
+  nombre: string;
+  categoria?: string | null;
+  precio_venta: number;
+  costo: number;
+  stock_actual: number;
+  stock_minimo: number;
+  activo: boolean;
+  sucursal_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Venta {
+  id: string;
+  numero_venta: string;
+  usuario_id: string;
+  sucursal_id?: string | null;
+  total: number;
+  metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+  estado: 'pendiente' | 'completada' | 'cancelada';
+  observaciones?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VentaItem {
+  id: string;
+  venta_id: string;
+  producto_id: string;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+  created_at: string;
+}
+
+export interface InventarioMovimiento {
+  id: string;
+  producto_id: string;
+  tipo_movimiento: 'venta' | 'compra' | 'ajuste' | 'inicial';
+  cantidad: number;
+  cantidad_anterior: number;
+  cantidad_nueva: number;
+  venta_id?: string | null;
+  usuario_id?: string | null;
+  observaciones?: string | null;
+  created_at: string;
+}
+
+// Interfaces para métricas
+export interface VentaDelDia {
+  numero_venta: string;
+  total: number;
+  metodo_pago: string;
+  created_at: string;
+}
+
+export interface ProductoMasVendido {
+  producto_id: string;
+  nombre: string;
+  cantidad_vendida: number;
+  total_ventas: number;
+}
+
+export interface ProductoStockBajo {
+  id: string;
+  nombre: string;
+  stock_actual: number;
+  stock_minimo: number;
+  categoria?: string | null;
+}

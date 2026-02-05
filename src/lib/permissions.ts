@@ -70,6 +70,10 @@ export function canAccessSection(user: User | null, section: string): boolean {
       // Todos los usuarios autenticados pueden ver productos/stock
       return true;
     
+    case "ventas":
+      // Todos los usuarios autenticados pueden ver ventas
+      return true;
+    
     case "ventas-metricas":
       // Todos los usuarios autenticados pueden ver métricas básicas
       return true;

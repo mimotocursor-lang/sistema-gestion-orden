@@ -252,6 +252,7 @@ CREATE TABLE ventas (
   numero_venta TEXT NOT NULL UNIQUE,
   usuario_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   sucursal_id UUID REFERENCES branches(id) ON DELETE SET NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
   total NUMERIC NOT NULL DEFAULT 0,
   metodo_pago TEXT NOT NULL DEFAULT 'EFECTIVO' CHECK (metodo_pago IN ('EFECTIVO', 'TARJETA', 'TRANSFERENCIA')),
   estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'completada', 'cancelada')),
@@ -323,6 +324,7 @@ CREATE INDEX idx_productos_sucursal ON productos(sucursal_id);
 CREATE INDEX idx_productos_activo ON productos(activo);
 CREATE INDEX idx_ventas_usuario ON ventas(usuario_id);
 CREATE INDEX idx_ventas_sucursal ON ventas(sucursal_id);
+CREATE INDEX idx_ventas_customer ON ventas(customer_id);
 CREATE INDEX idx_ventas_fecha ON ventas(created_at);
 CREATE INDEX idx_ventas_estado ON ventas(estado);
 CREATE INDEX idx_ventas_numero ON ventas(numero_venta);

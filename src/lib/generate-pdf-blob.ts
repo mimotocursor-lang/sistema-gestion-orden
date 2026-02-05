@@ -20,15 +20,31 @@ export async function generatePDFBlob(
   // Esto asegura que el PDF siempre refleje los datos más recientes de la sucursal
   let branchData = order.sucursal;
   if (order.sucursal_id) {
-    const { data: updatedBranch } = await supabase
+    const { data: updatedBranch, error: branchError } = await supabase
       .from("branches")
       .select("*")
       .eq("id", order.sucursal_id)
       .single();
     
+    if (branchError) {
+      console.error("[PDF] Error cargando sucursal:", branchError);
+    }
+    
     if (updatedBranch) {
       branchData = updatedBranch;
+      console.log("[PDF] Sucursal cargada:", {
+        id: updatedBranch.id,
+        name: updatedBranch.name,
+        razon_social: updatedBranch.razon_social,
+        hasAddress: !!updatedBranch.address,
+        hasPhone: !!updatedBranch.phone,
+        hasEmail: !!updatedBranch.email
+      });
+    } else {
+      console.warn("[PDF] No se encontró sucursal con ID:", order.sucursal_id);
     }
+  } else {
+    console.warn("[PDF] Orden no tiene sucursal_id");
   }
 
   // Crear orden con datos actualizados de sucursal
@@ -36,6 +52,19 @@ export async function generatePDFBlob(
     ...order,
     sucursal: branchData,
   };
+  
+  // Debug: Verificar datos de sucursal
+  if (!orderForPDF.sucursal) {
+    console.warn("[PDF] ADVERTENCIA: orderForPDF.sucursal es null/undefined");
+  } else {
+    console.log("[PDF] Datos de sucursal para PDF:", {
+      name: orderForPDF.sucursal.name,
+      razon_social: orderForPDF.sucursal.razon_social,
+      address: orderForPDF.sucursal.address,
+      phone: orderForPDF.sucursal.phone,
+      email: orderForPDF.sucursal.email
+    });
+  }
 
   // Cargar items del checklist si existen
   let checklistItems: DeviceChecklistItem[] = [];
@@ -149,14 +178,19 @@ export async function generatePDFBlob(
   // === PANEL NEGOCIO (Izquierda) ===
   const panelStartY = yPosition;
   
-  // Ancho disponible para contenido de paneles (ajustado para que texto se adapte)
-  const panelContentWidth = (contentWidth - 10) / 2 - 25;
+  // Ancho disponible para contenido de paneles
+  const panelWidth = (contentWidth - 10) / 2;
+  // Ancho disponible para el VALOR del texto (desde donde empieza el valor hasta el final del panel)
+  // El valor se dibuja en clientPanelX + 25 o margin + 25, y el panel termina en clientPanelX + panelWidth
+  // Entonces el ancho disponible es: panelWidth - 25 (margen izquierdo del valor) - 5 (margen derecho)
+  const panelContentWidth = panelWidth - 30; // Ancho desde donde empieza el valor hasta el final del panel
   
   // Calcular altura necesaria PRECISAMENTE antes de dibujar
   // Usar tamaño de fuente estándar para el cálculo
   doc.setFontSize(9);
   let tempPanelY = yPosition + 8; // Padding superior
-  const branchName = orderForPDF.sucursal?.name || "Sucursal";
+  // Usar name o razon_social, o un valor por defecto
+  const branchName = orderForPDF.sucursal?.name || orderForPDF.sucursal?.razon_social || "Sucursal";
   
   // Calcular líneas de texto reales
   const nameLines = doc.splitTextToSize(branchName, panelContentWidth);
@@ -194,41 +228,87 @@ export async function generatePDFBlob(
   // Reducir margen superior (de 12 a 10)
   let panelY = yPosition + 10;
 
-  // Nombre de la sucursal - texto se ajusta dentro del cuadro fijo
+  // Nombre de la sucursal - Etiqueta y valor en la misma línea, valor a la derecha
   doc.setFont("helvetica", "bold");
   doc.text("Sucursal:", margin + 3, panelY);
   doc.setFont("helvetica", "normal");
-  // Usar panelContentWidth para ajuste automático de texto - NO se sale del cuadro
-  const nameLinesFinal = doc.splitTextToSize(branchName, panelContentWidth);
-  doc.text(nameLinesFinal, margin + 25, panelY);
-  panelY += nameLinesFinal.length * 4; // Interlineado compacto (4pt)
+  const nameLinesFinal = doc.splitTextToSize(branchName || "", panelContentWidth);
+  if (nameLinesFinal.length > 0) {
+    // Primera línea a la derecha de la etiqueta
+    doc.text(nameLinesFinal[0], margin + 25, panelY);
+    // Líneas adicionales debajo, alineadas con la primera línea del valor
+    if (nameLinesFinal.length > 1) {
+      for (let i = 1; i < nameLinesFinal.length; i++) {
+        panelY += 6; // Interlineado más grande
+        doc.text(nameLinesFinal[i], margin + 25, panelY);
+      }
+    }
+    panelY += 6; // Espacio después del campo
+  } else {
+    panelY += 6; // Si no hay nombre, avanzar
+  }
 
       if (orderForPDF.sucursal?.address) {
         doc.setFont("helvetica", "bold");
         doc.text("Dirección:", margin + 3, panelY);
         doc.setFont("helvetica", "normal");
-        // El texto se ajusta automáticamente - SIEMPRE dentro del cuadro
-        const addressLines = doc.splitTextToSize(orderForPDF.sucursal.address, panelContentWidth);
-        doc.text(addressLines, margin + 25, panelY);
-        panelY += addressLines.length * 4; // Interlineado compacto (4pt)
+        const addressLines = doc.splitTextToSize(orderForPDF.sucursal.address || "", panelContentWidth);
+        if (addressLines.length > 0) {
+          // Primera línea a la derecha de la etiqueta
+          doc.text(addressLines[0], margin + 25, panelY);
+          // Líneas adicionales debajo, alineadas con la primera línea del valor
+          if (addressLines.length > 1) {
+            for (let i = 1; i < addressLines.length; i++) {
+              panelY += 6; // Interlineado más grande
+              doc.text(addressLines[i], margin + 25, panelY);
+            }
+          }
+          panelY += 6; // Espacio después del campo
+        } else {
+          panelY += 6; // Si no hay dirección, avanzar
+        }
       }
 
       if (orderForPDF.sucursal?.phone) {
         doc.setFont("helvetica", "bold");
         doc.text("Teléfono:", margin + 3, panelY);
         doc.setFont("helvetica", "normal");
-        const phoneText = doc.splitTextToSize(orderForPDF.sucursal.phone, panelContentWidth);
-        doc.text(phoneText, margin + 25, panelY);
-        panelY += phoneText.length * 4;
+        const phoneText = doc.splitTextToSize(orderForPDF.sucursal.phone || "", panelContentWidth);
+        if (phoneText.length > 0) {
+          // Primera línea a la derecha de la etiqueta
+          doc.text(phoneText[0], margin + 25, panelY);
+          // Líneas adicionales debajo, alineadas con la primera línea del valor
+          if (phoneText.length > 1) {
+            for (let i = 1; i < phoneText.length; i++) {
+              panelY += 6; // Interlineado más grande
+              doc.text(phoneText[i], margin + 25, panelY);
+            }
+          }
+          panelY += 6; // Espacio después del campo
+        } else {
+          panelY += 6; // Si no hay teléfono, avanzar
+        }
       }
 
       if (orderForPDF.sucursal?.email) {
         doc.setFont("helvetica", "bold");
         doc.text("Correo:", margin + 3, panelY);
         doc.setFont("helvetica", "normal");
-        const emailText = doc.splitTextToSize(orderForPDF.sucursal.email, panelContentWidth);
-        doc.text(emailText, margin + 25, panelY);
-        panelY += emailText.length * 4;
+        const emailText = doc.splitTextToSize(orderForPDF.sucursal.email || "", panelContentWidth);
+        if (emailText.length > 0) {
+          // Primera línea a la derecha de la etiqueta
+          doc.text(emailText[0], margin + 25, panelY);
+          // Líneas adicionales debajo, alineadas con la primera línea del valor
+          if (emailText.length > 1) {
+            for (let i = 1; i < emailText.length; i++) {
+              panelY += 6; // Interlineado más grande
+              doc.text(emailText[i], margin + 25, panelY);
+            }
+          }
+          panelY += 6; // Espacio después del campo
+        } else {
+          panelY += 6; // Si no hay correo, avanzar
+        }
       }
 
   // === PANEL CLIENTE (Derecha) ===
@@ -264,7 +344,7 @@ export async function generatePDFBlob(
   
   // Dibujar fondo y borde de AMBOS paneles con ALTURA FIJA
   // El panel NO se deforma - el texto se ajusta dentro
-  const panelWidth = (contentWidth - 10) / 2;
+  // panelWidth ya está declarado arriba, no redeclarar
   
   // Panel de negocio (izquierda)
   doc.setFillColor(250, 250, 250);
@@ -297,9 +377,17 @@ export async function generatePDFBlob(
     doc.text("Nombre:", clientPanelX + 3, panelY);
     doc.setFont("helvetica", "normal");
     // Texto se ajusta dentro del cuadro fijo - NO se sale
-    const customerNameLines = doc.splitTextToSize(order.customer.name, panelContentWidth);
-    doc.text(customerNameLines, clientPanelX + 25, panelY);
-    panelY += customerNameLines.length * 4; // Interlineado compacto (4pt)
+    const customerNameLines = doc.splitTextToSize(order.customer.name || "", panelContentWidth);
+    if (customerNameLines.length > 0) {
+      // Dibujar cada línea del nombre en posición separada
+      customerNameLines.forEach((line: string, index: number) => {
+        doc.text(line, clientPanelX + 25, panelY + (index * 4));
+      });
+      // Avanzar panelY después de todas las líneas del nombre
+      panelY += customerNameLines.length * 4 + 4; // Interlineado + espacio adicional entre campos
+    } else {
+      panelY += 4; // Si no hay nombre, solo avanzar una línea
+    }
 
     const phoneText = order.customer.phone_country_code
       ? `${order.customer.phone_country_code} ${order.customer.phone}`
@@ -307,25 +395,58 @@ export async function generatePDFBlob(
     doc.setFont("helvetica", "bold");
     doc.text("Teléfono:", clientPanelX + 3, panelY);
     doc.setFont("helvetica", "normal");
-    const phoneLines = doc.splitTextToSize(phoneText, panelContentWidth);
-    doc.text(phoneLines, clientPanelX + 25, panelY);
-    panelY += phoneLines.length * 4; // Interlineado compacto
+    const phoneLines = doc.splitTextToSize(phoneText || "", panelContentWidth);
+    if (phoneLines.length > 0) {
+      // Dibujar cada línea del teléfono en posición separada
+      phoneLines.forEach((line: string, index: number) => {
+        doc.text(line, clientPanelX + 25, panelY + (index * 4));
+      });
+      // Avanzar panelY después de todas las líneas del teléfono
+      panelY += phoneLines.length * 4 + 4; // Interlineado + espacio adicional entre campos
+    } else {
+      panelY += 4; // Si no hay teléfono, solo avanzar una línea
+    }
 
+    // Email - Etiqueta y valor en la misma línea, valor a la derecha
     doc.setFont("helvetica", "bold");
     doc.text("Correo:", clientPanelX + 3, panelY);
     doc.setFont("helvetica", "normal");
-    const emailLines = doc.splitTextToSize(order.customer.email, panelContentWidth);
-    doc.text(emailLines, clientPanelX + 25, panelY);
-    panelY += emailLines.length * 4; // Interlineado compacto
+    const emailLines = doc.splitTextToSize(order.customer.email || "", panelContentWidth);
+    if (emailLines.length > 0) {
+      // Primera línea a la derecha de la etiqueta
+      doc.text(emailLines[0], clientPanelX + 25, panelY);
+      // Líneas adicionales debajo, alineadas con la primera línea del valor
+      if (emailLines.length > 1) {
+        for (let i = 1; i < emailLines.length; i++) {
+          panelY += 6; // Interlineado más grande
+          doc.text(emailLines[i], clientPanelX + 25, panelY);
+        }
+      }
+      panelY += 6; // Espacio después del campo
+    } else {
+      panelY += 6; // Si no hay correo, avanzar
+    }
 
+    // Dirección - Etiqueta y valor en la misma línea, valor a la derecha
     if (order.customer.address) {
       doc.setFont("helvetica", "bold");
       doc.text("Dirección:", clientPanelX + 3, panelY);
       doc.setFont("helvetica", "normal");
-      // El texto se ajusta automáticamente - SIEMPRE dentro del cuadro
       const addressLines = doc.splitTextToSize(order.customer.address, panelContentWidth);
-      doc.text(addressLines, clientPanelX + 25, panelY);
-      panelY += addressLines.length * 4; // Interlineado compacto (4pt)
+      if (addressLines.length > 0) {
+        // Primera línea a la derecha de la etiqueta
+        doc.text(addressLines[0], clientPanelX + 25, panelY);
+        // Líneas adicionales debajo, alineadas con la primera línea del valor
+        if (addressLines.length > 1) {
+          for (let i = 1; i < addressLines.length; i++) {
+            panelY += 6; // Interlineado más grande
+            doc.text(addressLines[i], clientPanelX + 25, panelY);
+          }
+        }
+        panelY += 6; // Espacio después del campo
+      } else {
+        panelY += 6; // Si no hay dirección, avanzar
+      }
     }
   }
 

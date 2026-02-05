@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
 import { getSystemSettings } from "../../lib/settings";
+import { pdf}
 
 const resendApiKey = import.meta.env.RESEND_API_KEY;
 
@@ -101,10 +102,26 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Email de origen: SIEMPRE usar el email del admin (todas las sucursales usan el mismo)
-    // IMPORTANTE: El email debe ser del dominio verificado en Resend
-    // Todas las sucursales envían desde el mismo correo del admin
-    const fromEmail = "info@app.tec-solution.cl";
+    // Email de origen: Configuración flexible
+    // 
+    // OPCIÓN 1: Si tienes un dominio verificado en Resend, usa ese dominio:
+    // const fromEmail = branchEmail || "info@tu-dominio-verificado.com";
+    //
+    // OPCIÓN 2: Si NO tienes dominio verificado, solo puedes enviar a tu email (temporal):
+    // const fromEmail = "tecsolution26@gmail.com";
+    //
+    // IMPORTANTE: Para enviar a clientes, necesitas verificar un dominio en Resend.
+    // Ve a resend.com/domains y sigue las instrucciones.
+    // Los dominios .vercel.app NO funcionan porque Vercel controla los DNS.
+    // Necesitas un dominio personalizado (aunque sea gratuito de otro proveedor).
+    
+    // Por defecto: usar email de prueba (solo permite enviar a tecsolution26@gmail.com)
+    const resendTestEmail = "tecsolution26@gmail.com";
+    
+    // Si tienes un dominio verificado, cambia esta línea:
+    // const fromEmail = branchEmail || "info@tu-dominio-verificado.com";
+    const fromEmail = resendTestEmail; // TEMPORAL: Cambiar cuando tengas dominio verificado
+    
     const fromName = branchName ? `${branchName} - Tec-Solution` : "Tec-Solution";
     
     // Validar que el email del destinatario sea válido
@@ -113,6 +130,24 @@ export const POST: APIRoute = async ({ request }) => {
       console.error("Email del destinatario inválido:", to);
       return new Response(
         JSON.stringify({ error: `Email del destinatario inválido: ${to}` }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validación: Con dominio de prueba, solo se puede enviar a la dirección registrada
+    // Si el destinatario no es el email registrado, cambiar el destinatario temporalmente
+    // o mostrar un error más descriptivo
+    if (to !== resendTestEmail) {
+      console.warn(`[EMAIL API] ADVERTENCIA: Intentando enviar a ${to}, pero con dominio de prueba solo se puede enviar a ${resendTestEmail}`);
+      // Opción 1: Cambiar el destinatario al email registrado (para pruebas)
+      // Opción 2: Retornar error explicativo
+      // Por ahora, retornamos un error explicativo para que el usuario sepa qué hacer
+      return new Response(
+        JSON.stringify({ 
+          error: `Con el dominio de prueba de Resend solo puedes enviar a ${resendTestEmail}. Para enviar a otros destinatarios, verifica un dominio en Resend (resend.com/domains) y actualiza el email de origen en el código.`,
+          recipient: to,
+          allowedRecipient: resendTestEmail
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }

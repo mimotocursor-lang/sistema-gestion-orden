@@ -26,6 +26,14 @@ export default function Settings() {
         "• Cualquier reparación por terceros anula la garantía.",
       ],
     },
+    accessory_warranty_policies: {
+      policies: [
+        "• Garantía 30 días por defectos de fabricación.",
+        "• NO cubre daños por mal uso, golpes o caídas.",
+        "• Presentar boleta para hacer efectiva la garantía.",
+        "• La garantía no cubre desgaste normal del producto.",
+      ],
+    },
   });
 
   const headerLogoInputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +47,21 @@ export default function Settings() {
     setLoading(true);
     try {
       const loadedSettings = await getSystemSettings();
-      setSettings(loadedSettings);
+      
+      // Asegurar que accessory_warranty_policies existe
+      const settingsWithAccessory = {
+        ...loadedSettings,
+        accessory_warranty_policies: loadedSettings.accessory_warranty_policies || {
+          policies: [
+            "• Garantía 30 días por defectos de fabricación.",
+            "• NO cubre daños por mal uso, golpes o caídas.",
+            "• Presentar boleta para hacer efectiva la garantía.",
+            "• La garantía no cubre desgaste normal del producto.",
+          ],
+        },
+      };
+      
+      setSettings(settingsWithAccessory);
       
       // Cargar previews de logos actuales
       if (loadedSettings.header_logo?.url) {
@@ -128,6 +150,17 @@ export default function Settings() {
           setting_key: "warranty_policies",
           setting_value: settings.warranty_policies,
         },
+        {
+          setting_key: "accessory_warranty_policies",
+          setting_value: settings.accessory_warranty_policies || {
+            policies: [
+              "• Garantía 30 días por defectos de fabricación.",
+              "• NO cubre daños por mal uso, golpes o caídas.",
+              "• Presentar boleta para hacer efectiva la garantía.",
+              "• La garantía no cubre desgaste normal del producto.",
+            ],
+          },
+        },
       ];
 
       for (const update of updates) {
@@ -189,6 +222,40 @@ export default function Settings() {
     setSettings({
       ...settings,
       warranty_policies: {
+        policies: newPolicies,
+      },
+    });
+  }
+
+  function addAccessoryWarrantyPolicy() {
+    const currentPolicies = settings.accessory_warranty_policies?.policies || [];
+    setSettings({
+      ...settings,
+      accessory_warranty_policies: {
+        policies: [...currentPolicies, ""],
+      },
+    });
+  }
+
+  function removeAccessoryWarrantyPolicy(index: number) {
+    const currentPolicies = settings.accessory_warranty_policies?.policies || [];
+    if (currentPolicies.length <= 1) return;
+    
+    setSettings({
+      ...settings,
+      accessory_warranty_policies: {
+        policies: currentPolicies.filter((_, i) => i !== index),
+      },
+    });
+  }
+
+  function updateAccessoryWarrantyPolicy(index: number, value: string) {
+    const currentPolicies = settings.accessory_warranty_policies?.policies || [];
+    const newPolicies = [...currentPolicies];
+    newPolicies[index] = value;
+    setSettings({
+      ...settings,
+      accessory_warranty_policies: {
         policies: newPolicies,
       },
     });
@@ -417,11 +484,11 @@ export default function Settings() {
 
         {/* Pestaña: Garantías */}
         {activeTab === "warranties" && (
-          <div>
-            {/* Políticas de Garantía */}
-            <div className="pb-6">
+          <div className="space-y-8">
+            {/* Políticas de Garantía - Servicio Técnico */}
+            <div className="pb-6 border-b border-slate-200">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-slate-900">Políticas de Garantía</h3>
+                <h3 className="text-lg font-semibold text-slate-900">Garantías de Servicio Técnico</h3>
                 <button
                   onClick={addWarrantyPolicy}
                   className="px-3 py-1 text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark"
@@ -444,6 +511,44 @@ export default function Settings() {
                       onClick={() => removeWarrantyPolicy(index)}
                       className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                       disabled={settings.warranty_policies.policies.length === 1}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Políticas de Garantía - Accesorios */}
+            <div className="pb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">Garantías de Accesorios (POS)</h3>
+                <button
+                  onClick={addAccessoryWarrantyPolicy}
+                  className="px-3 py-1 text-sm bg-brand-light text-white rounded-md hover:bg-brand-dark"
+                >
+                  + Agregar Política
+                </button>
+              </div>
+
+              <p className="text-sm text-slate-600 mb-4">
+                Estas garantías aparecerán en los tickets de venta de accesorios. Máximo 5-6 líneas recomendadas para mantener el ticket compacto.
+              </p>
+
+              <div className="space-y-3">
+                {(settings.accessory_warranty_policies?.policies || []).map((policy, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 border border-slate-300 rounded-md px-3 py-2"
+                      value={policy}
+                      onChange={(e) => updateAccessoryWarrantyPolicy(index, e.target.value)}
+                      placeholder="Escribe una política de garantía para accesorios..."
+                    />
+                    <button
+                      onClick={() => removeAccessoryWarrantyPolicy(index)}
+                      className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                      disabled={(settings.accessory_warranty_policies?.policies || []).length === 1}
                     >
                       ✕
                     </button>
