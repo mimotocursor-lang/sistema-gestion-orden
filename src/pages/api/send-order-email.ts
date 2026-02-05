@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
 import { getSystemSettings } from "../../lib/settings";
-import { pdf}
 
 const resendApiKey = import.meta.env.RESEND_API_KEY;
 
